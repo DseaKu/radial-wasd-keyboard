@@ -8,15 +8,12 @@
 #![deny(clippy::large_stack_frames)]
 
 use esp_hal::clock::CpuClock;
-use esp_hal::gpio::{Level, Output, OutputConfig};
 use esp_hal::main;
 use esp_hal::time::{Duration, Instant};
 
-#[panic_handler]
-fn panic(_: &core::panic::PanicInfo) -> ! {
-    loop {}
-}
+use diy_game_pad::hardware;
 
+const LOOP_DELAY: u64 = 500;
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
@@ -27,14 +24,20 @@ esp_bootloader_esp_idf::esp_app_desc!();
 )]
 #[main]
 fn main() -> ! {
+    esp_println::logger::init_logger_from_env();
+    esp_println::println!("Init!");
+
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
-    let mut led = Output::new(peripherals.GPIO8, Level::Low, OutputConfig::default());
+
+    let mut hw = hardware::Hardware::init(peripherals);
 
     loop {
-        led.toggle();
+        hw.led.toggle();
+        esp_println::println!("Bing!");
+
         let delay_start = Instant::now();
-        while delay_start.elapsed() < Duration::from_millis(500) {}
+        while delay_start.elapsed() < Duration::from_millis(LOOP_DELAY) {}
     }
 
     // for inspiration have a look at the examples at https://github.com/esp-rs/esp-hal/tree/esp-hal-v1.1.0/examples

@@ -1,8 +1,8 @@
 [package]
-edition      = "2024"
-name         = "diy_game_pad"
+edition = "2024"
+name = "diy_game_pad"
 rust-version = "1.88"
-version      = "0.1.0"
+version = "0.1.0"
 
 [[bin]]
 name = "diy_game_pad"
@@ -10,6 +10,7 @@ path = "./src/bin/main.rs"
 
 [dependencies]
 esp-hal = { version = "~1.1.0", features = ["esp32c3"] }
+esp-println = { version = "0.17.0", features = ["esp32c3", "log-04"] }
 
 
 esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32c3"] }
@@ -24,7 +25,7 @@ critical-section = "1.2.0"
 opt-level = "s"
 
 [profile.release]
-codegen-units = 1     # LLVM can perform better optimizations using a single thread
-debug         = 2     # prefer slower builds but better debugging experience
-lto           = 'fat'
-opt-level     = 's'
+codegen-units = 1 # LLVM can perform better optimizations using a single thread
+debug = 2         # prefer slower builds but better debugging experience
+lto = 'fat'
+opt-level = 's'
