@@ -33,10 +33,7 @@ fn main() -> ! {
     let mut hw = Hardware::init(peripherals);
 
     loop {
-        // hw.led.toggle();
-
-        let analog_value = nb::block!(hw.adc.read_oneshot(&mut hw.adc_pin)).unwrap();
-        esp_println::println!("analog Value: {}", analog_value);
+        esp_println::println!("x|y {}|{}", hw.get_joy_stick_x(), hw.get_joy_stick_y());
 
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_millis(LOOP_DELAY) {}
