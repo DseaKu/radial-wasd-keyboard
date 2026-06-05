@@ -2,9 +2,39 @@ use crate::hardware::Hardware;
 use esp_hal::time::{Duration, Instant};
 
 const SLEEP_TIME: u64 = 20;
+const X_THRESHOLD: u16 = 350;
+const X: u16 = 2325;
 
 pub struct App {
     hw: Hardware,
+    // x_threshold: u16,
+    // y_threshold: u16,
+}
+#[derive(Default)]
+pub enum Dir {
+    #[default]
+    Center,
+    Left,
+    Right,
+}
+impl Dir {
+    pub fn from_x_axis(x: u16) -> Self {
+        if X + X_THRESHOLD < x {
+            Self::Right
+        } else if X - X_THRESHOLD > x {
+            Self::Left
+        } else {
+            Self::Center
+        }
+    }
+
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::Left => "Left",
+            Self::Right => "Right",
+            Self::Center => "Center", // Exhaustive match prevents future bugs
+        }
+    }
 }
 
 impl App {
@@ -17,7 +47,13 @@ impl App {
             let x = self.hw.get_joy_stick_x();
             let y = self.hw.get_joy_stick_y();
 
-            esp_println::print!("\rx|y {:4} | {:4}", x, y);
+            let dir = Dir::from_x_axis(x);
+            esp_println::print!(
+                "\rx|y {:4} | {:4}   \n\rDir: {:10}   \x1B[1A",
+                x,
+                y,
+                dir.as_str()
+            );
 
             self.sleep(SLEEP_TIME)
         }
