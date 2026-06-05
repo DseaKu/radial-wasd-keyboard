@@ -34,7 +34,9 @@ fn main() -> ! {
 
     loop {
         hw.led.toggle();
-        esp_println::println!("Bing!");
+
+        let analog_value = nb::block!(hw.adc.read_oneshot(&mut hw.adc_pin)).unwrap();
+        esp_println::println!("analog Value: {}", analog_value);
 
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_millis(LOOP_DELAY) {}
