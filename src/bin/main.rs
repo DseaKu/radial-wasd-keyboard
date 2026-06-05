@@ -11,9 +11,9 @@ use esp_hal::clock::CpuClock;
 use esp_hal::main;
 use esp_hal::time::{Duration, Instant};
 
-use diy_game_pad::hardware;
+use diy_game_pad::hardware::Hardware;
 
-const LOOP_DELAY: u64 = 500;
+const LOOP_DELAY: u64 = 50;
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
@@ -30,10 +30,10 @@ fn main() -> ! {
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
-    let mut hw = hardware::Hardware::init(peripherals);
+    let mut hw = Hardware::init(peripherals);
 
     loop {
-        hw.led.toggle();
+        // hw.led.toggle();
 
         let analog_value = nb::block!(hw.adc.read_oneshot(&mut hw.adc_pin)).unwrap();
         esp_println::println!("analog Value: {}", analog_value);
