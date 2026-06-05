@@ -17,7 +17,7 @@ impl App {
             let x = self.hw.get_joy_stick_x();
             let y = self.hw.get_joy_stick_y();
 
-            esp_println::print!("\n\rx|y {:4} | {:4}", x, y);
+            esp_println::print!("\rx|y {:4} | {:4}", x, y);
 
             self.sleep(SLEEP_TIME)
         }
