@@ -1,4 +1,4 @@
-use crate::hardware::Hardware;
+use crate::hardware::InputPeripherals;
 use esp_hal::time::{Duration, Instant};
 
 const SLEEP_TIME: u64 = 20;
@@ -6,9 +6,7 @@ const X_THRESHOLD: u16 = 350;
 const X: u16 = 2325;
 
 pub struct App {
-    hw: Hardware,
-    // x_threshold: u16,
-    // y_threshold: u16,
+    ip: InputPeripherals,
 }
 #[derive(Default)]
 pub enum Dir {
@@ -38,14 +36,14 @@ impl Dir {
 }
 
 impl App {
-    pub fn new(hw: Hardware) -> Self {
-        Self { hw }
+    pub fn new(ip: InputPeripherals) -> Self {
+        Self { ip }
     }
 
     pub fn run(&mut self) -> ! {
         loop {
-            let x = self.hw.get_joy_stick_x();
-            let y = self.hw.get_joy_stick_y();
+            let x = self.ip.analog_stick.get_x();
+            let y = self.ip.analog_stick.get_y();
 
             let dir = Dir::from_x_axis(x);
             esp_println::print!(
