@@ -5,22 +5,49 @@ const DEADZONE: u16 = 1000;
 const CENTER: u16 = (1 << 12) / 2;
 
 #[derive(Default, PartialEq)]
-pub struct Dir {
-    n: bool,
-    w: bool,
-    s: bool,
-    e: bool,
+pub enum DirX {
+    #[default]
+    Center,
+    Left,
+    Right,
 }
-impl Dir {
-    pub fn to_hid_code() {}
+impl DirX {
+    pub fn to_hid_code(&self) -> u8 {
+        match self {
+            Self::Center => 0x00,
+            Self::Left => 0x50,
+            Self::Right => 0x50,
+        }
+    }
+}
+
+#[derive(Default, PartialEq)]
+pub enum DirY {
+    #[default]
+    Center,
+    Up,
+    Down,
+}
+impl DirY {
+    pub fn to_hid_code(&self) -> u8 {
+        match self {
+            Self::Center => 0x00,
+            Self::Up => 0x52,
+            Self::Down => 0x51,
+        }
+    }
 }
 
 pub struct AnalogStick<'a> {
     adc: AdcDriver<'a, ADCU1>,
+
     pin_x: AdcChannelDriver<'a, { attenuation::DB_12 }, ADCCH3<ADCU1>>,
+    dir_x: DirX,
+    is_holding_x: bool,
+
     pin_y: AdcChannelDriver<'a, { attenuation::DB_12 }, ADCCH2<ADCU1>>,
-    dir: Dir,
-    is_holding_dir: bool,
+    dir_y: DirY,
+    is_holding_y: bool,
 }
 
 impl<'a> AnalogStick<'a> {
@@ -33,43 +60,54 @@ impl<'a> AnalogStick<'a> {
 
         Ok(Self {
             adc,
+
             pin_x,
+            dir_x: DirX::default(),
+            is_holding_x: false,
+
             pin_y,
-            dir: Dir::default(),
-            is_holding_dir: false,
+            dir_y: DirY::default(),
+            is_holding_y: false,
         })
     }
 
-    pub fn update_dir(&mut self) {
-        let mut new_dir = Dir::default();
+    pub fn update_x_position(&mut self) {
+        let mut new_dir = DirX::default();
 
-        let y = self.get_y();
         let x = self.get_x();
 
         if x < CENTER.saturating_sub(DEADZONE) {
-            new_dir.w = true;
+            new_dir = DirX::Left;
         } else if x > CENTER.saturating_add(DEADZONE) {
-            new_dir.e = true;
+            new_dir = DirX::Right;
         }
+
+        if new_dir == self.dir_x {
+            self.is_holding_x = true;
+        } else {
+            self.dir_x = new_dir;
+            self.is_holding_x = false;
+        }
+    }
+
+    pub fn update_y_position(&mut self) {
+        let mut new_dir = DirY::default();
+
+        let y = self.get_y();
 
         if y < CENTER.saturating_sub(DEADZONE) {
-            new_dir.s = true;
+            new_dir = DirY::Down;
         } else if y > CENTER.saturating_add(DEADZONE) {
-            new_dir.n = true;
+            new_dir = DirY::Up;
         }
 
-        if new_dir == self.dir {
-            self.is_holding_dir = true;
+        if new_dir == self.dir_y {
+            self.is_holding_y = true;
         } else {
-            self.dir = new_dir;
-            self.is_holding_dir = false;
+            self.dir_y = new_dir;
+            self.is_holding_y = false;
         }
     }
-
-    pub fn is_holding_dir(&self) -> bool {
-        self.is_holding_dir
-    }
-
     pub fn get_x(&mut self) -> u16 {
         self.adc.read(&mut self.pin_x).unwrap_or(0)
     }
