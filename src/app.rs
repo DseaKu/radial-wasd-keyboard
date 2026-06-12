@@ -3,49 +3,8 @@ use esp_idf_hal::delay::FreeRtos;
 use esp32_nimble::{BLEAdvertisementData, BLEDevice, BLEHIDDevice};
 use log::info;
 
-const X_THRESHOLD: u16 = 350;
-const X_CENTER: u16 = 2300;
-const Y_THRESHOLD: u16 = 350;
-const Y_CENTER: u16 = 2325;
-
 pub struct App<'d> {
     ip: InputPeripherals<'d>,
-}
-
-#[derive(Default, PartialEq, Clone, Copy)]
-pub enum Dir {
-    #[default]
-    Center,
-    Left,
-    Right,
-    Up,
-    Down,
-}
-
-impl Dir {
-    pub fn from_axes(x: u16, y: u16) -> Self {
-        if x > X_CENTER + X_THRESHOLD {
-            Self::Right
-        } else if x < X_CENTER - X_THRESHOLD {
-            Self::Left
-        } else if y > Y_CENTER + Y_THRESHOLD {
-            Self::Down
-        } else if y < Y_CENTER - Y_THRESHOLD {
-            Self::Up
-        } else {
-            Self::Center
-        }
-    }
-
-    pub fn to_hid_code(&self) -> u8 {
-        match self {
-            Self::Left => 0x50,  // Left Arrow
-            Self::Right => 0x4F, // Right Arrow
-            Self::Up => 0x52,    // Up Arrow
-            Self::Down => 0x51,  // Down Arrow
-            Self::Center => 0x00,
-        }
-    }
 }
 
 const HID_REPORT_DISCRIPTOR: &[u8] = &[
@@ -105,26 +64,19 @@ impl<'d> App<'d> {
 
         info!("BLE HID Keyboard started and advertising...");
 
-        let mut last_dir = Dir::Center;
-
         loop {
-            let x = self.ip.analog_stick.get_x();
-            let y = self.ip.analog_stick.get_y();
-            let dir = Dir::from_axes(x, y);
+            let dir_x = self.ip.analog_stick.get_x_hid_code().unwrap();
 
-            if dir != last_dir {
-                let code = dir.to_hid_code();
-                let mut report = [0u8; 8];
-                if code != 0 {
-                    report[2] = code;
-                }
+            let code = dir_x;
+            let mut report = [0u8; 8];
+            if code != 0 {
+                report[2] = code;
+            }
 
-                if ble_server.connected_count() > 0 {
-                    input_report.lock().set_value(&report).notify();
-                    info!("Sent: {:?}", dir.to_hid_code());
-                    FreeRtos::delay_ms(7);
-                }
-                last_dir = dir;
+            if ble_server.connected_count() > 0 {
+                input_report.lock().set_value(&report).notify();
+                info!("Sent: {:?}", dir_x);
+                FreeRtos::delay_ms(7);
             }
 
             FreeRtos::delay_ms(20);

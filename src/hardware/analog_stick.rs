@@ -16,7 +16,7 @@ impl DirX {
         match self {
             Self::Center => 0x00,
             Self::Left => 0x50,
-            Self::Right => 0x50,
+            Self::Right => 0x4F,
         }
     }
 }
@@ -71,7 +71,7 @@ impl<'a> AnalogStick<'a> {
         })
     }
 
-    pub fn update_x_position(&mut self) {
+    fn update_x_position(&mut self) {
         let mut new_dir = DirX::default();
 
         let x = self.get_x();
@@ -89,8 +89,15 @@ impl<'a> AnalogStick<'a> {
             self.is_holding_x = false;
         }
     }
+    pub fn get_x_hid_code(&mut self) -> Option<u8> {
+        self.update_x_position();
+        if self.is_holding_x {
+            return None;
+        }
+        Some(self.dir_x.to_hid_code())
+    }
 
-    pub fn update_y_position(&mut self) {
+    fn update_y_position(&mut self) {
         let mut new_dir = DirY::default();
 
         let y = self.get_y();
@@ -108,11 +115,19 @@ impl<'a> AnalogStick<'a> {
             self.is_holding_y = false;
         }
     }
-    pub fn get_x(&mut self) -> u16 {
+
+    pub fn get_y_hid_code(&mut self) -> Option<u8> {
+        self.update_y_position();
+        if self.is_holding_y {
+            return None;
+        }
+        Some(self.dir_y.to_hid_code())
+    }
+    fn get_x(&mut self) -> u16 {
         self.adc.read(&mut self.pin_x).unwrap_or(0)
     }
 
-    pub fn get_y(&mut self) -> u16 {
+    fn get_y(&mut self) -> u16 {
         self.adc.read(&mut self.pin_y).unwrap_or(0)
     }
 }
