@@ -1,10 +1,10 @@
 use crate::hardware::InputPeripherals;
-use esp32_nimble::{BLEDevice, BLEHIDDevice, BLEAdvertisementData};
 use esp_idf_hal::delay::FreeRtos;
+use esp32_nimble::{BLEAdvertisementData, BLEDevice, BLEHIDDevice};
 use log::info;
 
 const X_THRESHOLD: u16 = 350;
-const X_CENTER: u16 = 2325;
+const X_CENTER: u16 = 2300;
 const Y_THRESHOLD: u16 = 350;
 const Y_CENTER: u16 = 2325;
 
@@ -39,10 +39,10 @@ impl Dir {
 
     pub fn to_hid_code(&self) -> u8 {
         match self {
-            Self::Left => 0x50, // Left Arrow
+            Self::Left => 0x50,  // Left Arrow
             Self::Right => 0x4F, // Right Arrow
-            Self::Up => 0x52, // Up Arrow
-            Self::Down => 0x51, // Down Arrow
+            Self::Up => 0x52,    // Up Arrow
+            Self::Down => 0x51,  // Down Arrow
             Self::Center => 0x00,
         }
     }
@@ -72,7 +72,7 @@ const HID_REPORT_DISCRIPTOR: &[u8] = &[
     0x19, 0x00, // Usage Minimum (0)
     0x29, 0x65, // Usage Maximum (101)
     0x81, 0x00, // Input (Data, Array)
-    0xC0,       // End Collection
+    0xC0, // End Collection
 ];
 
 impl<'d> App<'d> {
@@ -118,7 +118,7 @@ impl<'d> App<'d> {
                 if code != 0 {
                     report[2] = code;
                 }
-                
+
                 if ble_server.connected_count() > 0 {
                     input_report.lock().set_value(&report).notify();
                     info!("Sent: {:?}", dir.to_hid_code());
