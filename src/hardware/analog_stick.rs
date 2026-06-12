@@ -1,39 +1,28 @@
-use esp_hal::Blocking;
-use esp_hal::analog::adc::{Adc, AdcCalBasic, AdcConfig, AdcPin, Attenuation};
-use esp_hal::gpio::Output;
-use esp_hal::gpio::{Level, OutputConfig};
-use esp_hal::peripherals::ADC1;
+use esp_idf_hal::adc::*;
+use esp_idf_hal::gpio::*;
 
-use esp_hal::peripherals::GPIO2 as JoyStickPinY;
-use esp_hal::peripherals::GPIO3 as JoyStickPinX;
-
-pub struct AnalogStick {
-    _status_led: Output<'static>,
-    adc1: Adc<'static, ADC1<'static>, Blocking>,
-    joy_stick_pin_y: AdcPin<JoyStickPinY<'static>, ADC1<'static>, AdcCalBasic<ADC1<'static>>>,
-    joy_stick_pin_x: AdcPin<JoyStickPinX<'static>, ADC1<'static>, AdcCalBasic<ADC1<'static>>>,
+pub struct AnalogStick<'a> {
+    adc: AdcDriver<'a, ADCU1>,
+    pin_x: AdcChannelDriver<'a, { attenuation::DB_12 }, ADCCH3<ADCU1>>,
+    pin_y: AdcChannelDriver<'a, { attenuation::DB_12 }, ADCCH2<ADCU1>>,
 }
 
-impl AnalogStick {
-    pub fn init(p: esp_hal::peripherals::Peripherals) -> AnalogStick {
-        let mut adc_config = AdcConfig::new();
+impl<'a> AnalogStick<'a> {
+    pub fn new(adc1: ADC1<'a>, gpio3: Gpio3<'a>, gpio2: Gpio2<'a>) -> anyhow::Result<Self> {
+        let config = config::Config::new().calibration(true);
+        let adc = AdcDriver::new(adc1, &config)?;
 
-        // Enable calibration to remove the hardware zero-offset
-        let joy_stick_pin_y = adc_config.enable_pin_with_cal(p.GPIO2, Attenuation::_11dB);
-        let joy_stick_pin_x = adc_config.enable_pin_with_cal(p.GPIO3, Attenuation::_11dB);
+        let pin_x = AdcChannelDriver::new(gpio3)?;
+        let pin_y = AdcChannelDriver::new(gpio2)?;
 
-        Self {
-            _status_led: Output::new(p.GPIO8, Level::Low, OutputConfig::default()),
-            adc1: Adc::new(p.ADC1, adc_config),
-            joy_stick_pin_y,
-            joy_stick_pin_x,
-        }
+        Ok(Self { adc, pin_x, pin_y })
     }
 
     pub fn get_x(&mut self) -> u16 {
-        nb::block!(self.adc1.read_oneshot(&mut self.joy_stick_pin_x)).unwrap()
+        self.adc.read(&mut self.pin_x).unwrap_or(0)
     }
+
     pub fn get_y(&mut self) -> u16 {
-        nb::block!(self.adc1.read_oneshot(&mut self.joy_stick_pin_y)).unwrap()
+        self.adc.read(&mut self.pin_y).unwrap_or(0)
     }
 }
