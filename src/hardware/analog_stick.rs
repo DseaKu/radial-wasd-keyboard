@@ -5,7 +5,7 @@ const DEADZONE: u16 = 1000;
 const CENTER: u16 = (1 << 12) / 2;
 
 #[derive(Default, PartialEq)]
-pub enum DirX {
+enum DirX {
     #[default]
     Center,
     Left,
@@ -22,7 +22,7 @@ impl DirX {
 }
 
 #[derive(Default, PartialEq)]
-pub enum DirY {
+enum DirY {
     #[default]
     Center,
     Up,
