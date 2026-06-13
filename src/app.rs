@@ -3,8 +3,8 @@ use esp_idf_hal::delay::FreeRtos;
 use esp32_nimble::{BLEAdvertisementData, BLEDevice, BLEHIDDevice};
 use log::info;
 
-pub struct App<'d> {
-    ip: InputPeripherals<'d>,
+pub struct App<'a> {
+    ip: InputPeripherals<'a>,
 }
 
 const HID_REPORT_DISCRIPTOR: &[u8] = &[
@@ -78,7 +78,7 @@ impl<'d> App<'d> {
             if let Some(code_y) = self.ip.analog_stick.get_y_hid_code() {
                 if code_y != 0 {
                     // Note: This simple implementation only sends one key at a time.
-                    // If both X and Y are moved, Y will take precedence in report[2] 
+                    // If both X and Y are moved, Y will take precedence in report[2]
                     // or we could use report[3] for a second simultaneous key.
                     report[3] = code_y;
                     has_update = true;
@@ -89,7 +89,7 @@ impl<'d> App<'d> {
                 input_report.lock().set_value(&report).notify();
                 info!("Sent HID report: {:?}", &report[2..4]);
                 FreeRtos::delay_ms(7);
-                
+
                 // Send an empty report to release the keys
                 let empty_report = [0u8; 8];
                 input_report.lock().set_value(&empty_report).notify();
