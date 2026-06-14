@@ -68,6 +68,9 @@ impl<'d> App<'d> {
             let mut report = [0u8; 8];
             let mut has_update = false;
 
+            // If state has changed, send a 0x00 to signify the key has been released
+            // TODO
+            //
             if let Some(code_x) = self.ip.analog_stick.get_x_hid_code()
                 && code_x != 0
             {

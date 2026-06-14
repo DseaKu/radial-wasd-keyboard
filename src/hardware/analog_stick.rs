@@ -4,50 +4,73 @@ use esp_idf_hal::gpio::*;
 const DEADZONE: u16 = 1000;
 const CENTER: u16 = (1 << 12) / 2;
 
-#[derive(Default, PartialEq)]
-enum DirX {
+#[derive(Default, PartialEq, Copy, Clone)]
+enum Direction {
     #[default]
     Center,
-    Left,
-    Right,
-}
-impl DirX {
-    pub fn to_hid_code(&self) -> u8 {
-        match self {
-            Self::Center => 0x00,
-            Self::Left => 0x50,
-            Self::Right => 0x4F,
-        }
-    }
+    Negative,
+    Positive,
 }
 
-#[derive(Default, PartialEq)]
-enum DirY {
-    #[default]
-    Center,
-    Up,
-    Down,
+struct Axis<'a, C: AdcChannel> {
+    pin: AdcChannelDriver<'a, { attenuation::DB_12 }, C>,
+    dir: Direction,
+    is_holding: bool,
 }
-impl DirY {
-    pub fn to_hid_code(&self) -> u8 {
-        match self {
-            Self::Center => 0x00,
-            Self::Up => 0x52,
-            Self::Down => 0x51,
+
+impl<'a, C: AdcChannel<AdcUnit = ADCU1>> Axis<'a, C> {
+    fn new(pin: impl ADCPin<AdcChannel = C> + 'a) -> anyhow::Result<Self> {
+        Ok(Self {
+            pin: AdcChannelDriver::new(pin)?,
+            dir: Direction::default(),
+            is_holding: false,
+        })
+    }
+
+    fn read_pin(&mut self, adc: &mut AdcDriver<'a, ADCU1>) -> u16 {
+        adc.read(&mut self.pin).unwrap_or(0)
+    }
+
+    fn update(&mut self, adc: &mut AdcDriver<'a, ADCU1>) {
+        let analog_value = self.read_pin(adc);
+        let mut new_dir = Direction::Center;
+
+        if analog_value < CENTER.saturating_sub(DEADZONE) {
+            new_dir = Direction::Negative;
+        } else if analog_value > CENTER.saturating_add(DEADZONE) {
+            new_dir = Direction::Positive;
+        }
+
+        if new_dir == self.dir {
+            self.is_holding = true;
+        } else {
+            self.dir = new_dir;
+            self.is_holding = false;
+        }
+    }
+
+    fn get_hid_code(
+        &mut self,
+        adc: &mut AdcDriver<'a, ADCU1>,
+        neg_code: u8,
+        pos_code: u8,
+    ) -> Option<u8> {
+        self.update(adc);
+        if self.is_holding {
+            return None;
+        }
+        match self.dir {
+            Direction::Center => None,
+            Direction::Negative => Some(neg_code),
+            Direction::Positive => Some(pos_code),
         }
     }
 }
 
 pub struct AnalogStick<'a> {
     adc: AdcDriver<'a, ADCU1>,
-
-    pin_x: AdcChannelDriver<'a, { attenuation::DB_12 }, ADCCH3<ADCU1>>,
-    dir_x: DirX,
-    is_holding_x: bool,
-
-    pin_y: AdcChannelDriver<'a, { attenuation::DB_12 }, ADCCH2<ADCU1>>,
-    dir_y: DirY,
-    is_holding_y: bool,
+    axis_x: Axis<'a, ADCCH3<ADCU1>>,
+    axis_y: Axis<'a, ADCCH2<ADCU1>>,
 }
 
 impl<'a> AnalogStick<'a> {
@@ -55,79 +78,23 @@ impl<'a> AnalogStick<'a> {
         let config = config::Config::new().calibration(true);
         let adc = AdcDriver::new(adc1, &config)?;
 
-        let pin_x = AdcChannelDriver::new(gpio3)?;
-        let pin_y = AdcChannelDriver::new(gpio2)?;
+        let axis_x = Axis::new(gpio3)?;
+        let axis_y = Axis::new(gpio2)?;
 
         Ok(Self {
             adc,
-
-            pin_x,
-            dir_x: DirX::default(),
-            is_holding_x: false,
-
-            pin_y,
-            dir_y: DirY::default(),
-            is_holding_y: false,
+            axis_x,
+            axis_y,
         })
     }
 
-    fn update_x_position(&mut self) {
-        let mut new_dir = DirX::default();
-
-        let x = self.get_x();
-
-        if x < CENTER.saturating_sub(DEADZONE) {
-            new_dir = DirX::Left;
-        } else if x > CENTER.saturating_add(DEADZONE) {
-            new_dir = DirX::Right;
-        }
-
-        if new_dir == self.dir_x {
-            self.is_holding_x = true;
-        } else {
-            self.dir_x = new_dir;
-            self.is_holding_x = false;
-        }
-    }
     pub fn get_x_hid_code(&mut self) -> Option<u8> {
-        self.update_x_position();
-        if self.is_holding_x {
-            return None;
-        }
-        Some(self.dir_x.to_hid_code())
-    }
-
-    fn update_y_position(&mut self) {
-        let mut new_dir = DirY::default();
-
-        let y = self.get_y();
-
-        if y < CENTER.saturating_sub(DEADZONE) {
-            new_dir = DirY::Down;
-        } else if y > CENTER.saturating_add(DEADZONE) {
-            new_dir = DirY::Up;
-        }
-
-        if new_dir == self.dir_y {
-            self.is_holding_y = true;
-        } else {
-            self.dir_y = new_dir;
-            self.is_holding_y = false;
-        }
+        // Left: 0x50, Right: 0x4F
+        self.axis_x.get_hid_code(&mut self.adc, 0x50, 0x4F)
     }
 
     pub fn get_y_hid_code(&mut self) -> Option<u8> {
-        self.update_y_position();
-        if self.is_holding_y {
-            return None;
-        }
-        Some(self.dir_y.to_hid_code())
-    }
-    fn get_x(&mut self) -> u16 {
-        self.adc.read(&mut self.pin_x).unwrap_or(0)
-    }
-
-    fn get_y(&mut self) -> u16 {
-        self.adc.read(&mut self.pin_y).unwrap_or(0)
+        // Up: 0x52, Down: 0x51
+        self.axis_y.get_hid_code(&mut self.adc, 0x51, 0x52)
     }
 }
