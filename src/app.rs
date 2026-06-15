@@ -65,26 +65,17 @@ impl<'d> App<'d> {
 
         info!("BLE Keyboard started and advertising...");
 
+        let mut report = [0u8; 8];
+
         loop {
-            let mut report = [0u8; 8];
             let mut has_update = false;
 
-            // If state has changed, send a 0x00 to signify the key has been released
-            // TODO
-            //
-            if let Some(code_x) = self.ip.analog_stick.get_x_hid_code()
-                && code_x != HidCode(0x00)
-            {
+            if let Some(code_x) = self.ip.analog_stick.get_x_hid_code() {
                 report[2] = code_x.into_inner();
                 has_update = true;
             }
 
-            if let Some(code_y) = self.ip.analog_stick.get_y_hid_code()
-                && code_y != HidCode(0x00)
-            {
-                // Note: This simple implementation only sends one key at a time.
-                // If both X and Y are moved, Y will take precedence in report[2]
-                // or we could use report[3] for a second simultaneous key.
+            if let Some(code_y) = self.ip.analog_stick.get_y_hid_code() {
                 report[3] = code_y.into_inner();
                 has_update = true;
             }
@@ -92,11 +83,6 @@ impl<'d> App<'d> {
             if ble_server.connected_count() > 0 && has_update {
                 input_report.lock().set_value(&report).notify();
                 info!("Sent HID report: {:?}", &report[2..4]);
-                FreeRtos::delay_ms(7);
-
-                // Send an empty report to release the keys
-                let empty_report = [0u8; 8];
-                input_report.lock().set_value(&empty_report).notify();
             }
 
             FreeRtos::delay_ms(20);
