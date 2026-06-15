@@ -1,4 +1,5 @@
 use crate::hardware::InputPeripherals;
+use crate::types::HidCode;
 use esp_idf_hal::delay::FreeRtos;
 use esp32_nimble::{BLEAdvertisementData, BLEDevice, BLEHIDDevice};
 use log::info;
@@ -72,19 +73,19 @@ impl<'d> App<'d> {
             // TODO
             //
             if let Some(code_x) = self.ip.analog_stick.get_x_hid_code()
-                && code_x != 0
+                && code_x != HidCode(0x00)
             {
-                report[2] = code_x;
+                report[2] = code_x.into_inner();
                 has_update = true;
             }
 
             if let Some(code_y) = self.ip.analog_stick.get_y_hid_code()
-                && code_y != 0
+                && code_y != HidCode(0x00)
             {
                 // Note: This simple implementation only sends one key at a time.
                 // If both X and Y are moved, Y will take precedence in report[2]
                 // or we could use report[3] for a second simultaneous key.
-                report[3] = code_y;
+                report[3] = code_y.into_inner();
                 has_update = true;
             }
 

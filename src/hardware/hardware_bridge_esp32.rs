@@ -1,3 +1,4 @@
+use crate::types::AdcValue;
 use esp_idf_hal::adc::*;
 use esp_idf_hal::gpio::ADCPin;
 
@@ -25,10 +26,10 @@ impl<'a> Esp32AdcReader<'a> {
         let pin_y = AdcChannelDriver::new(raw_pin_y)?;
         Ok(Self { adc, pin_x, pin_y })
     }
-    pub fn read_pin_x(&mut self) -> u16 {
-        self.adc.read(&mut self.pin_x).unwrap_or(0)
+    pub fn read_pin_x(&mut self) -> AdcValue {
+        AdcValue(self.adc.read(&mut self.pin_x).unwrap_or(0))
     }
-    pub fn read_pin_y(&mut self) -> u16 {
-        self.adc.read(&mut self.pin_y).unwrap_or(0)
+    pub fn read_pin_y(&mut self) -> AdcValue {
+        AdcValue(self.adc.read(&mut self.pin_y).unwrap_or(0))
     }
 }
