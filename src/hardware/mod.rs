@@ -1,3 +1,4 @@
+mod adc_interface;
 pub mod analog_stick;
 
 pub use analog_stick::AnalogStick;
