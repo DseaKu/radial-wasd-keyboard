@@ -15,9 +15,9 @@ fn main() -> anyhow::Result<()> {
     }));
 
     let peripherals = Peripherals::take().unwrap();
-    let ip = InputPeripherals::new(peripherals)?;
+    let input_peripherals = InputPeripherals::new(peripherals)?;
 
-    let mut app = App::new(ip);
+    let mut app = App::new(input_peripherals);
 
     app.run()
 }

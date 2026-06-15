@@ -1,17 +1,29 @@
-mod adc_interface;
-pub mod analog_stick;
-
-pub use analog_stick::AnalogStick;
+use anyhow::Ok;
 use esp_idf_hal::peripherals::Peripherals;
 
+pub mod analog_stick;
+pub use analog_stick::AnalogStick;
+
+mod hardware_bridge_esp32;
+use hardware_bridge_esp32::Esp32AdcReader;
+type AnalogHardware<'a> = Esp32AdcReader<'a>;
+
 pub struct InputPeripherals<'a> {
-    pub analog_stick: AnalogStick<'a>,
+    hardware: AnalogHardware<'a>,
+    pub analog_stick: AnalogStick,
 }
 
 impl<'a> InputPeripherals<'a> {
     pub fn new(p: Peripherals) -> anyhow::Result<Self> {
         Ok(Self {
-            analog_stick: AnalogStick::new(p.adc1, p.pins.gpio3, p.pins.gpio2)?,
+            hardware: AnalogHardware::new(p.adc1, p.pins.gpio3, p.pins.gpio2)?,
+            analog_stick: AnalogStick::new(),
         })
+    }
+    pub fn update(&mut self) {
+        let raw_x = self.hardware.read_pin_x();
+        let raw_y = self.hardware.read_pin_y();
+
+        self.analog_stick.update(raw_x, raw_y);
     }
 }
