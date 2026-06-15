@@ -17,7 +17,7 @@ impl<'a> InputPeripherals<'a> {
     pub fn new(p: Peripherals) -> anyhow::Result<Self> {
         Ok(Self {
             hardware: AnalogHardware::new(p.adc1, p.pins.gpio3, p.pins.gpio2)?,
-            analog_stick: AnalogStick::new(),
+            analog_stick: AnalogStick::default(),
         })
     }
     pub fn update(&mut self) {

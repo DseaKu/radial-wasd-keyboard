@@ -2,61 +2,79 @@ use crate::types::{AdcValue, HidCode};
 
 const DEADZONE: AdcValue = AdcValue(1000);
 const CENTER: AdcValue = AdcValue((1 << 12) / 2);
+const KEY_W: HidCode = HidCode(0x52);
+const KEY_A: HidCode = HidCode(0x50);
+const KEY_S: HidCode = HidCode(0x51);
+const KEY_D: HidCode = HidCode(0x4F);
+const KEY_RELEASE: HidCode = HidCode(0x00);
 
 #[derive(Default, PartialEq, Copy, Clone)]
-enum Direction {
+enum Position {
     #[default]
     Center,
     Negative,
     Positive,
 }
 
-// enum StickState {
-//     hold,
-//     pressed,
-//     released,
-// }
+#[derive(Default, PartialEq, Copy, Clone)]
+enum State {
+    #[default]
+    Centered,
+    JustTilted,
+    HoldingTilt,
+    JustReleased,
+}
 #[derive(Default)]
 struct Axis {
-    dir: Direction,
-    is_holding: bool,
-    // state: StickState,
+    position: Position,
+    state: State,
 }
 
 impl Axis {
-    fn new() -> Self {
-        Self {
-            dir: Direction::default(),
-            is_holding: false,
+    fn to_hid_code(&self, negative: HidCode, positive: HidCode) -> Option<HidCode> {
+        // Filter out idle and holding states
+        if self.state == State::Centered || self.state == State::HoldingTilt {
+            return None;
+        }
+        if self.state == State::JustReleased {
+            return Some(KEY_RELEASE);
+        }
+        match self.position {
+            Position::Center => None,
+            Position::Negative => Some(negative),
+            Position::Positive => Some(positive),
+        }
+    }
+
+    fn update_position(&self, val: AdcValue) -> Position {
+        if val < CENTER.saturating_sub(DEADZONE) {
+            Position::Negative
+        } else if val > CENTER.saturating_add(DEADZONE) {
+            Position::Positive
+        } else {
+            Position::Center
+        }
+    }
+
+    fn update_state(&self, new_pos: Position) -> State {
+        match (&self.state, new_pos) {
+            (State::Centered, Position::Center) => State::Centered,
+            (State::Centered, _) => State::JustTilted,
+
+            (State::JustTilted, Position::Center) => State::JustReleased,
+            (State::JustTilted, _) => State::HoldingTilt,
+
+            (State::HoldingTilt, Position::Center) => State::JustReleased,
+            (State::HoldingTilt, _) => State::HoldingTilt,
+
+            (State::JustReleased, Position::Center) => State::Centered,
+            (State::JustReleased, _) => State::JustTilted,
         }
     }
 
     fn update(&mut self, val: AdcValue) {
-        let mut new_dir = Direction::Center;
-
-        if val < CENTER.saturating_sub(DEADZONE) {
-            new_dir = Direction::Negative;
-        } else if val > CENTER.saturating_add(DEADZONE) {
-            new_dir = Direction::Positive;
-        }
-
-        if new_dir == self.dir {
-            self.is_holding = true;
-        } else {
-            self.dir = new_dir;
-            self.is_holding = false;
-        }
-    }
-
-    fn get_hid_code(&mut self, negative: HidCode, positive: HidCode) -> Option<HidCode> {
-        if self.is_holding {
-            return None;
-        }
-        match self.dir {
-            Direction::Center => None,
-            Direction::Negative => Some(negative),
-            Direction::Positive => Some(positive),
-        }
+        self.position = self.update_position(val);
+        self.state = self.update_state(self.position);
     }
 }
 
@@ -67,24 +85,16 @@ pub struct AnalogStick {
 }
 
 impl AnalogStick {
-    pub fn new() -> Self {
-        Self {
-            axis_x: Axis::new(),
-            axis_y: Axis::new(),
-        }
-    }
     pub fn update(&mut self, x: AdcValue, y: AdcValue) {
         self.axis_x.update(x);
         self.axis_y.update(y);
     }
 
-    pub fn get_x_hid_code(&mut self) -> Option<HidCode> {
-        // Left: 0x50, Right: 0x4F
-        self.axis_x.get_hid_code(HidCode(0x50), HidCode(0x4F))
+    pub fn get_x_hid_code(&self) -> Option<HidCode> {
+        self.axis_x.to_hid_code(KEY_A, KEY_D)
     }
 
-    pub fn get_y_hid_code(&mut self) -> Option<HidCode> {
-        // Up: 0x52, Down: 0x51
-        self.axis_y.get_hid_code(HidCode(0x51), HidCode(0x52))
+    pub fn get_y_hid_code(&self) -> Option<HidCode> {
+        self.axis_y.to_hid_code(KEY_W, KEY_S)
     }
 }
