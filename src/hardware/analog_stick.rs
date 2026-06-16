@@ -1,11 +1,20 @@
 use crate::types::{AdcValue, HidCode};
 
-const DEADZONE: AdcValue = AdcValue(1000);
-const CENTER: AdcValue = AdcValue((1 << 12) / 2);
-const KEY_W: HidCode = HidCode(0x52);
-const KEY_A: HidCode = HidCode(0x50);
-const KEY_S: HidCode = HidCode(0x51);
-const KEY_D: HidCode = HidCode(0x4F);
+const DEADZONE: AdcValue = AdcValue(600);
+const CENTER: AdcValue = AdcValue(1800);
+
+// WASD
+const KEY_W: HidCode = HidCode(0x1A);
+const KEY_A: HidCode = HidCode(0x04);
+const KEY_S: HidCode = HidCode(0x16);
+const KEY_D: HidCode = HidCode(0x07);
+
+// Arrow keys
+// const KEY_W: HidCode = HidCode(0x52);
+// const KEY_A: HidCode = HidCode(0x50);
+// const KEY_S: HidCode = HidCode(0x51);
+// const KEY_D: HidCode = HidCode(0x4F);
+
 const KEY_RELEASE: HidCode = HidCode(0x00);
 
 #[derive(Default, PartialEq, Copy, Clone)]

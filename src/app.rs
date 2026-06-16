@@ -1,11 +1,10 @@
 use crate::hardware::InputPeripherals;
-use crate::types::HidCode;
 use esp_idf_hal::delay::FreeRtos;
 use esp32_nimble::{BLEAdvertisementData, BLEDevice, BLEHIDDevice};
 use log::info;
 
 pub struct App<'a> {
-    ip: InputPeripherals<'a>,
+    input_peripherals: InputPeripherals<'a>,
 }
 
 const HID_REPORT_DISCRIPTOR: &[u8] = &[
@@ -36,8 +35,8 @@ const HID_REPORT_DISCRIPTOR: &[u8] = &[
 ];
 
 impl<'d> App<'d> {
-    pub fn new(ip: InputPeripherals<'d>) -> Self {
-        Self { ip }
+    pub fn new(input_peripherals: InputPeripherals<'d>) -> Self {
+        Self { input_peripherals }
     }
 
     pub fn run(&mut self) -> anyhow::Result<()> {
@@ -70,19 +69,32 @@ impl<'d> App<'d> {
         loop {
             let mut has_update = false;
 
-            if let Some(code_x) = self.ip.analog_stick.get_x_hid_code() {
+            self.input_peripherals.update();
+
+            if let Some(code_x) = self.input_peripherals.analog_stick.get_x_hid_code() {
                 report[2] = code_x.into_inner();
                 has_update = true;
             }
 
-            if let Some(code_y) = self.ip.analog_stick.get_y_hid_code() {
+            if let Some(code_y) = self.input_peripherals.analog_stick.get_y_hid_code() {
                 report[3] = code_y.into_inner();
                 has_update = true;
             }
 
             if ble_server.connected_count() > 0 && has_update {
-                input_report.lock().set_value(&report).notify();
-                info!("Sent HID report: {:?}", &report[2..4]);
+                // Pack the array to remove 0x00 gaps that break OS parsing
+                let mut packed_report = [0u8; 8];
+                let mut pack_idx = 2;
+
+                for &keycode in &report[2..] {
+                    if keycode != 0 {
+                        packed_report[pack_idx] = keycode;
+                        pack_idx += 1;
+                    }
+                }
+
+                input_report.lock().set_value(&packed_report).notify();
+                info!("Sent HID report: {:?}", &packed_report[2..4]);
             }
 
             FreeRtos::delay_ms(20);

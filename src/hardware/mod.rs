@@ -24,6 +24,12 @@ impl<'a> InputPeripherals<'a> {
         let raw_x = self.hardware.read_pin_x();
         let raw_y = self.hardware.read_pin_y();
 
+        // log::info!(
+        //     "Raw X: {}, Raw Y: {}",
+        //     raw_x.into_inner(),
+        //     raw_y.into_inner()
+        // );
+
         self.analog_stick.update(raw_x, raw_y);
     }
 }
