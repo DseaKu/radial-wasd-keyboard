@@ -1,4 +1,5 @@
 use diy_game_pad::app::App;
+use diy_game_pad::bluetooth::BluetoothDevice;
 use diy_game_pad::hardware::InputPeripherals;
 use esp_idf_hal::peripherals::Peripherals;
 
@@ -16,8 +17,9 @@ fn main() -> anyhow::Result<()> {
 
     let peripherals = Peripherals::take().unwrap();
     let input_peripherals = InputPeripherals::new(peripherals)?;
+    let bluetooth_device = BluetoothDevice::new()?;
 
-    let mut app = App::new(input_peripherals);
+    let mut app = App::new(input_peripherals, bluetooth_device);
 
     app.run()
 }
