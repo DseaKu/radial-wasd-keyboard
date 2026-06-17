@@ -64,8 +64,8 @@ cargo espflash flash --release --monitor
 The analog stick deadzone and key mappings can be adjusted in
 `src/hardware/analog_stick.rs`.
 
-> [!TIP]
-> You can find a complete list of USB HID scan codes here: [USB HID Keyboard Scan Codes](https://gist.github.com/MightyPork/6da26e382a7ad91b5496ee55fdc73db2).
+> [!TIP] You can find a complete list of USB HID scan codes here:
+> [USB HID Keyboard Scan Codes](https://gist.github.com/MightyPork/6da26e382a7ad91b5496ee55fdc73db2).
 
 ```rust
 const DEADZONE: AdcValue = AdcValue(600);
@@ -81,6 +81,7 @@ const X_AXIS_NEGATVIE: HidCode = HidCode(0x07); // Key D
 ## Future Roadmap
 
 - [ ] **Standard Key Support**: Add support for buttons.
+- [ ] **Pictures**: Pictures of a finished keyboard.
 - [ ] **Custom Key Mapping**: Implement a way to remap keys.
 - [ ] **Platform Portability**: Support for other microcontrollers, if
       requested, but I can't promise to implement them ;-)
