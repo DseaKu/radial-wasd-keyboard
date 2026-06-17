@@ -62,18 +62,20 @@ cargo espflash flash --release --monitor
 ## Configuration
 
 The analog stick deadzone and key mappings can be adjusted in
-`src/hardware/analog_stick.rs`, this will change See the
-[Future Roadmap](#future-roadmap).
+`src/hardware/analog_stick.rs`.
+
+> [!TIP]
+> You can find a complete list of USB HID scan codes here: [USB HID Keyboard Scan Codes](https://gist.github.com/MightyPork/6da26e382a7ad91b5496ee55fdc73db2).
 
 ```rust
 const DEADZONE: AdcValue = AdcValue(600);
 const CENTER: AdcValue = AdcValue(1800);
 
-// Default WASD mapping
-const KEY_W: HidCode = HidCode(0x1A);
-const KEY_A: HidCode = HidCode(0x04);
-const KEY_S: HidCode = HidCode(0x16);
-const KEY_D: HidCode = HidCode(0x07);
+// Default axis mapping
+const Y_AXIS_POSITIVE: HidCode = HidCode(0x1A); // Key W
+const X_AXIS_POSITIVE: HidCode = HidCode(0x04); // Key A
+const Y_AXIS_NEGATVIE: HidCode = HidCode(0x16); // Key S
+const X_AXIS_NEGATVIE: HidCode = HidCode(0x07); // Key D
 ```
 
 ## Future Roadmap

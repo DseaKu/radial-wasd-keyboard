@@ -5,10 +5,11 @@ const DEADZONE: AdcValue = AdcValue(600);
 const CENTER: AdcValue = AdcValue(1800);
 
 // HID Key Codes (WASD)
-const KEY_W: HidCode = HidCode(0x1A);
-const KEY_A: HidCode = HidCode(0x04);
-const KEY_S: HidCode = HidCode(0x16);
-const KEY_D: HidCode = HidCode(0x07);
+// Reference for more codes: https://gist.github.com/MightyPork/6da26e382a7ad91b5496ee55fdc73db2
+const Y_AXIS_POSITIVE: HidCode = HidCode(0x1A); // Key W
+const X_AXIS_POSITIVE: HidCode = HidCode(0x04); // Key A
+const Y_AXIS_NEGATVIE: HidCode = HidCode(0x16); // Key S
+const X_AXIS_NEGATVIE: HidCode = HidCode(0x07); // Key D
 
 const KEY_RELEASE: HidCode = HidCode(0x00);
 
@@ -39,7 +40,7 @@ struct Axis {
 
 impl Axis {
     /// Maps the current state to a HID code. Returns None if no action is needed.
-    fn to_hid_code(&self, negative: HidCode, positive: HidCode) -> Option<HidCode> {
+    fn to_hid_code(&self, positive: HidCode, negative: HidCode) -> Option<HidCode> {
         // Filter out idle and holding states to avoid report spam
         if self.state == State::Centered || self.state == State::HoldingTilt {
             return None;
@@ -103,10 +104,10 @@ impl AnalogStick {
     }
 
     pub fn get_x_hid_code(&self) -> Option<HidCode> {
-        self.axis_x.to_hid_code(KEY_A, KEY_D)
+        self.axis_x.to_hid_code(X_AXIS_POSITIVE, X_AXIS_NEGATVIE)
     }
 
     pub fn get_y_hid_code(&self) -> Option<HidCode> {
-        self.axis_y.to_hid_code(KEY_W, KEY_S)
+        self.axis_y.to_hid_code(Y_AXIS_POSITIVE, Y_AXIS_NEGATVIE)
     }
 }
