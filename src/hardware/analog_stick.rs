@@ -1,22 +1,18 @@
 use crate::types::{AdcValue, HidCode};
 
+// Configuration constants for the analog stick
 const DEADZONE: AdcValue = AdcValue(600);
 const CENTER: AdcValue = AdcValue(1800);
 
-// WASD
+// HID Key Codes (WASD)
 const KEY_W: HidCode = HidCode(0x1A);
 const KEY_A: HidCode = HidCode(0x04);
 const KEY_S: HidCode = HidCode(0x16);
 const KEY_D: HidCode = HidCode(0x07);
 
-// Arrow keys
-// const KEY_W: HidCode = HidCode(0x52);
-// const KEY_A: HidCode = HidCode(0x50);
-// const KEY_S: HidCode = HidCode(0x51);
-// const KEY_D: HidCode = HidCode(0x4F);
-
 const KEY_RELEASE: HidCode = HidCode(0x00);
 
+/// Physical position of an axis relative to its deadzone.
 #[derive(Default, PartialEq, Copy, Clone)]
 enum Position {
     #[default]
@@ -25,6 +21,7 @@ enum Position {
     Positive,
 }
 
+/// State machine to handle transitions between positions.
 #[derive(Default, PartialEq, Copy, Clone)]
 enum State {
     #[default]
@@ -33,6 +30,7 @@ enum State {
     HoldingTilt,
     JustReleased,
 }
+
 #[derive(Default)]
 struct Axis {
     position: Position,
@@ -40,8 +38,9 @@ struct Axis {
 }
 
 impl Axis {
+    /// Maps the current state to a HID code. Returns None if no action is needed.
     fn to_hid_code(&self, negative: HidCode, positive: HidCode) -> Option<HidCode> {
-        // Filter out idle and holding states
+        // Filter out idle and holding states to avoid report spam
         if self.state == State::Centered || self.state == State::HoldingTilt {
             return None;
         }
@@ -55,6 +54,7 @@ impl Axis {
         }
     }
 
+    /// Determines the physical position based on raw ADC value.
     fn update_position(&self, val: AdcValue) -> Position {
         if val < CENTER.saturating_sub(DEADZONE) {
             Position::Negative
@@ -65,6 +65,7 @@ impl Axis {
         }
     }
 
+    /// Updates the internal state based on the current position.
     fn update_state(&self, new_pos: Position) -> State {
         match (&self.state, new_pos) {
             (State::Centered, Position::Center) => State::Centered,
@@ -87,6 +88,7 @@ impl Axis {
     }
 }
 
+/// Represetns a 2-axis analog stick.
 #[derive(Default)]
 pub struct AnalogStick {
     axis_x: Axis,
@@ -94,6 +96,7 @@ pub struct AnalogStick {
 }
 
 impl AnalogStick {
+    /// Updates the state of both axes with new ADC values.
     pub fn update(&mut self, x: AdcValue, y: AdcValue) {
         self.axis_x.update(x);
         self.axis_y.update(y);

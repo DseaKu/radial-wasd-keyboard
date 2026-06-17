@@ -7,6 +7,7 @@ type ADCUnit = ADCU1;
 type ChannelX = ADCCH3<ADCUnit>;
 type ChannelY = ADCCH2<ADCUnit>;
 
+/// ESP32-specific implementation for reading analog values via ADC.
 pub struct Esp32AdcReader<'a> {
     adc: AdcDriver<'a, ADCUnit>,
     pin_x: AdcChannelDriver<'a, { attenuation::DB_12 }, ChannelX>,
@@ -14,6 +15,7 @@ pub struct Esp32AdcReader<'a> {
 }
 
 impl<'a> Esp32AdcReader<'a> {
+    /// Configures the ADC driver and pins with calibration and attenuation.
     pub fn new<PX, PY>(adc: AdcPeripheral<'a>, raw_pin_x: PX, raw_pin_y: PY) -> anyhow::Result<Self>
     where
         PX: ADCPin<AdcChannel = ChannelX> + 'a,
@@ -26,10 +28,14 @@ impl<'a> Esp32AdcReader<'a> {
         let pin_y = AdcChannelDriver::new(raw_pin_y)?;
         Ok(Self { adc, pin_x, pin_y })
     }
-    pub fn read_pin_x(&mut self) -> AdcValue {
+
+    /// Reads the current value from the X-axis pin.
+    pub fn poll_x_axis(&mut self) -> AdcValue {
         AdcValue(self.adc.read(&mut self.pin_x).unwrap_or(0))
     }
-    pub fn read_pin_y(&mut self) -> AdcValue {
+
+    /// Reads the current value from the Y-axis pin.
+    pub fn poll_y_axis(&mut self) -> AdcValue {
         AdcValue(self.adc.read(&mut self.pin_y).unwrap_or(0))
     }
 }

@@ -3,6 +3,7 @@ use crate::hardware::InputPeripherals;
 use esp_idf_hal::delay::FreeRtos;
 use log::info;
 
+/// Main application structure.
 pub struct App<'a> {
     input_peripherals: InputPeripherals<'a>,
     bluetooth_device: BluetoothDevice,
@@ -16,24 +17,29 @@ impl<'d> App<'d> {
         }
     }
 
+    /// Main execution loop
     pub fn run(&mut self) -> anyhow::Result<()> {
         let mut report = [0u8; 8];
 
         loop {
             let mut has_update = false;
 
-            self.input_peripherals.update();
+            // Poll hardware for changes
+            self.input_peripherals.poll();
 
+            // Check for X-axis movement
             if let Some(code_x) = self.input_peripherals.analog_stick.get_x_hid_code() {
                 report[2] = code_x.into_inner();
                 has_update = true;
             }
 
+            // Check for Y-axis movement
             if let Some(code_y) = self.input_peripherals.analog_stick.get_y_hid_code() {
                 report[3] = code_y.into_inner();
                 has_update = true;
             }
 
+            // Only send report if there's a connection and an update
             if self.bluetooth_device.connected_count() > 0 && has_update {
                 // Pack the array to remove 0x00 gaps that break OS parsing
                 let mut packed_report = [0u8; 8];
