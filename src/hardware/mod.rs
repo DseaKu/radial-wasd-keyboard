@@ -1,25 +1,27 @@
 use anyhow::Ok;
 use esp_idf_hal::peripherals::Peripherals;
 
-pub mod analog_stick;
-pub use analog_stick::AnalogStick;
-
 mod hardware_bridge_esp32;
-use hardware_bridge_esp32::Esp32AdcReader;
-type AnalogHardware<'a> = Esp32AdcReader<'a>;
+
+pub mod analog_stick;
+pub mod keys;
+pub use analog_stick::AnalogStick;
+type PeripherieHardware<'a> = hardware_bridge_esp32::Esp32Peripherie<'a>;
 
 /// Collection of all input hardware components.
 pub struct InputPeripherals<'a> {
-    hardware: AnalogHardware<'a>,
+    hardware: PeripherieHardware<'a>,
     pub analog_stick: AnalogStick,
+    pub keys: keys::Keys,
 }
 
 impl<'a> InputPeripherals<'a> {
     /// Initializes hardware peripherals (ADC and pins).
     pub fn new(p: Peripherals) -> anyhow::Result<Self> {
         Ok(Self {
-            hardware: AnalogHardware::new(p.adc1, p.pins.gpio3, p.pins.gpio2)?,
+            hardware: PeripherieHardware::new(p.adc1, p.pins.gpio3, p.pins.gpio2)?,
             analog_stick: AnalogStick::default(),
+            keys: keys::Keys::default(),
         })
     }
 

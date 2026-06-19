@@ -8,13 +8,14 @@ type ChannelX = ADCCH3<ADCUnit>;
 type ChannelY = ADCCH2<ADCUnit>;
 
 /// ESP32-specific implementation for reading analog values via ADC.
-pub struct Esp32AdcReader<'a> {
+pub struct Esp32Peripherie<'a> {
     adc: AdcDriver<'a, ADCUnit>,
     pin_x: AdcChannelDriver<'a, { attenuation::DB_12 }, ChannelX>,
     pin_y: AdcChannelDriver<'a, { attenuation::DB_12 }, ChannelY>,
+    // Pin 5-10
 }
 
-impl<'a> Esp32AdcReader<'a> {
+impl<'a> Esp32Peripherie<'a> {
     /// Configures the ADC driver and pins with calibration and attenuation.
     pub fn new<PX, PY>(adc: AdcPeripheral<'a>, raw_pin_x: PX, raw_pin_y: PY) -> anyhow::Result<Self>
     where
