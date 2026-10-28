@@ -85,5 +85,4 @@ const X_AXIS_NEGATVIE: HidCode = HidCode(0x07); // Key D
 - [ ] **Standard Key Support**: Add support for buttons.
 - [ ] **Pictures**: Pictures of a finished keyboard.
 - [ ] **Custom Key Mapping**: Implement a way to remap keys.
-- [ ] **Platform Portability**: Support for other microcontrollers, if
-      requested, but I can't promise to implement them ;-)
+- [ ] **Platform Portability**: Support for other microcontrollers, but I can't promise to implement them ;-)
