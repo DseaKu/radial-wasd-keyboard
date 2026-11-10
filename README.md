@@ -1,10 +1,15 @@
 # DIY Analog-WASD Keyboard
 
 > [!CAUTION] **Status: Under Development**  
-> This project is currently in early development. **Currently, only the analog
-> stick functionality and the Bluetooth connection are finished.** Features and
-> APIs are subject to change. See the [Future Roadmap](#future-roadmap) for
-> planned improvements.
+> This project is in early development and is a spare-time project: I work on it
+> alongside my bachelor thesis, so progress comes in steady but modest steps.
+>
+> **Progress so far:** The analog stick functionality and the Bluetooth
+> connection are finished and working. Standard key support, custom key mapping
+> and a finished hardware build are still to come.
+>
+> Features and APIs are subject to change. See the [Future Roadmap](#future-roadmap)
+> for planned improvements.
 
 ## Overview
 
