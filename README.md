@@ -5,6 +5,8 @@
 >
 > **Done:** analog stick and Bluetooth connection. **To do:** standard keys, custom key mapping, finished hardware build.
 >
+> A real keyboard, with pictures and assembly instructions, will follow.
+>
 > Features and APIs may change. See the [Future Roadmap](#future-roadmap).
 
 ## Overview
@@ -12,6 +14,8 @@
 A keyboard replacement for the left hand that solves "movement finger conflict."
 Instead of three fingers for WASD, an **analog stick** handles movement. Your
 fingers stay on action keys (E, R, F, Shift, Ctrl).
+
+This keyboard is inspired by the [Charybdis](https://github.com/Bastardkb/Charybdis) split keyboard by Bastard Keyboards. The case layout follows its key well design.
 
 > [!NOTE] **Development Hardware**: Developed and tested on an **ESP32-C3**.
 
