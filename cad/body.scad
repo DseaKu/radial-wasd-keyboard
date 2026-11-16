@@ -30,6 +30,7 @@
 part = "assembly"; // [assembly, case, stick_plate, stick_carrier, knob, bottom, top_view]
 show_dummies = true;
 spin_z = is_undef($demo_spin) ? 0 : $demo_spin; // turn angle, set by cad/demo.scad only
+spin_c = is_undef($demo_center) ? [0, 0, 0] : $demo_center; // turn center, set by cad/demo.scad only
 
 /* [Key well] */
 alpha = 15; // column curvature: tilt between rows (deg)
@@ -481,7 +482,7 @@ module dummies() {
 }
 
 // ============================================================ output
-rotate([0, 0, spin_z]) if (part == "assembly") {
+translate(spin_c) rotate([0, 0, spin_z]) translate(-spin_c) if (part == "assembly") {
   color("#7f8fa6") case_body();
   color("#e1b12c") stick_plate();
   color("#2d6a4f") stick_carrier();

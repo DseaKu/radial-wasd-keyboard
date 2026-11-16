@@ -8,6 +8,6 @@ all:
 # Turntable GIF for the README (needs ImageMagick "magick")
 demo:
 	rm -rf frames && mkdir frames
-	$(OPENSCAD) --animate 36 --imgsize=640,480 --viewall --autocenter --projection=p --camera=0,0,0,55,0,25,400 --colorscheme=Tomorrow -o frames/f.png demo.scad
+	$(OPENSCAD) --animate 36 --imgsize=640,480 --projection=p --camera=11.26,-16.20,19.49,55,0,25,400 --colorscheme=Tomorrow -o frames/f.png demo.scad
 	magick -delay 8 -loop 0 frames/f*.png -layers Optimize ../docs/keyboard_demo.gif
 	rm -rf frames
