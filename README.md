@@ -21,6 +21,10 @@ over action keys (like E, R, F, Shift, Ctrl) without interrupting your movement.
 > [!NOTE] **Development Hardware**: This project is currently developed and
 > tested on an **ESP32-C3**.
 
+![Turntable view of the 3D-printable case](docs/keyboard_demo.gif)
+
+*Demo: the case design rendered in OpenSCAD. Source: `cad/body.scad`, render with `make demo` in `cad/`.*
+
 It uses an ESP32 to act as a Bluetooth Low Energy (BLE) Human Interface Device
 (HID), mapping analog stick input to standard keyboard signals.
 
