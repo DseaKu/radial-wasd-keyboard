@@ -1,104 +1,71 @@
 # DIY Analog-WASD Keyboard
 
 > [!CAUTION] **Status: Under Development**  
-> This project is in early development and is a spare-time project: I work on it
-> alongside my bachelor thesis, so progress comes in steady but modest steps.
+> A spare-time project, built alongside my bachelor thesis. Progress comes in modest steps.
 >
-> **Progress so far:** The analog stick functionality and the Bluetooth
-> connection are finished and working. Standard key support, custom key mapping
-> and a finished hardware build are still to come.
+> **Done:** analog stick and Bluetooth connection. **To do:** standard keys, custom key mapping, finished hardware build.
 >
-> Features and APIs are subject to change. See the [Future Roadmap](#future-roadmap)
-> for planned improvements.
+> Features and APIs may change. See the [Future Roadmap](#future-roadmap).
 
 ## Overview
 
-This is a keyboard replacement for the left hand, designed to solve "movement
-finger conflict." Instead of using three fingers for WASD movement, this device
-uses an **analog stick** for movement, freeing your fingers to stay positioned
-over action keys (like E, R, F, Shift, Ctrl) without interrupting your movement.
+A keyboard replacement for the left hand that solves "movement finger conflict."
+Instead of three fingers for WASD, an **analog stick** handles movement. Your
+fingers stay on action keys (E, R, F, Shift, Ctrl).
 
-> [!NOTE] **Development Hardware**: This project is currently developed and
-> tested on an **ESP32-C3**.
+> [!NOTE] **Development Hardware**: Developed and tested on an **ESP32-C3**.
 
 ![Turntable view of the 3D-printable case](docs/keyboard_demo.gif)
 
-*Demo: the case design rendered in OpenSCAD. Source: `cad/body.scad`, render with `make demo` in `cad/`.*
+*Demo: the case rendered in OpenSCAD (`cad/body.scad`, run `make demo` in `cad/`).*
 
-It uses an ESP32 to act as a Bluetooth Low Energy (BLE) Human Interface Device
-(HID), mapping analog stick input to standard keyboard signals.
+The ESP32 acts as a Bluetooth Low Energy (BLE) Human Interface Device (HID),
+mapping analog stick input to keyboard signals.
 
-- **BLE HID Support**: Appears as a standard Bluetooth Keyboard to your device.
-- **Analog Stick to Keyboard Mapping**: Uses a state machine to convert analog
-  input into discrete key presses with deadzone support.
-- **Modular Architecture**: Decoupled Bluetooth, hardware abstraction, and
-  application logic.
-- **Embedded Rust**: Built using `esp-idf-hal` and `esp32-nimble`.
+- **BLE HID**: Appears as a standard Bluetooth keyboard.
+- **Analog Stick Mapping**: A state machine turns analog input into key presses, with deadzone support.
+- **Modular**: Bluetooth, hardware abstraction, and application logic are decoupled.
+- **Embedded Rust**: Built with `esp-idf-hal` and `esp32-nimble`.
 
-## Software Prerequisites
+## Setup and Flashing
 
-1. **Rust Toolchain**: Install via [rustup](https://rustup.rs/).
-2. **ESP-IDF Prerequisites**: Follow the
-   [esp-idf-template](https://github.com/esp-rs/esp-idf-template) guide for
-   setting up your environment (LLVM, etc.).
-3. **Cargo ESPFLASH**: Install using `cargo install cargo-espflash`.
-
-## Building and Flashing
-
-### 1. Build the project
+Prerequisites: [Rust toolchain](https://rustup.rs/), the
+[esp-idf-template](https://github.com/esp-rs/esp-idf-template) setup (LLVM, etc.),
+and `cargo install cargo-espflash`.
 
 ```bash
 cargo build
-```
-
-### 2. Flash to ESP32
-
-Ensure your ESP32 is connected via USB.
-
-```bash
-cargo espflash flash --release --monitor
+cargo espflash flash --release --monitor   # ESP32 connected via USB
 ```
 
 ## Hardware / 3D Print
 
-The case is fully parametric in a single OpenSCAD file: `cad/body.scad`
-(Charybdis-style key well for Kailh Choc v1, Hall-effect thumbstick,
-ESP32-C3 Super Mini).
-
-Build all printable parts (needs [OpenSCAD](https://openscad.org/)):
+The case is parametric in `cad/body.scad` (Charybdis-style key well for Kailh Choc v1,
+Hall-effect thumbstick, ESP32-C3 Super Mini). Needs [OpenSCAD](https://openscad.org/).
 
 ```bash
 make cad
 ```
 
-This writes `case.stl`, `stick_plate.stl`, `stick_carrier.stl`, `knob.stl`
-and `bottom.stl` into `cad/`. The STLs are build output and not tracked in git.
-`cad/keyboard.3mf` is the slicer project with the print settings.
+This writes `case.stl`, `stick_plate.stl`, `stick_carrier.stl`, `knob.stl` and
+`bottom.stl` into `cad/`. STLs are not tracked in git. `cad/keyboard.3mf` holds the print settings.
 
-Hardware: M2 screws, Kailh Choc v1 switches, Hall-effect thumbstick
-(PS4/PS5 size, ALPS RKJXV footprint).
+Parts: M2 screws, Kailh Choc v1 switches, Hall-effect thumbstick (PS4/PS5 size, ALPS RKJXV footprint).
 
 ## Project Structure
 
-- `src/bin/main.rs`: Entry point, system initialization, and wiring.
-- `src/app.rs`: Main application loop and HID report coordination.
-- `src/bluetooth.rs`: BLE stack management and HID service configuration.
-- `src/hardware/`:
-  - `mod.rs`: Peripheral management layer.
-  - `analog_stick.rs`: State machine for joystick-to-key mapping.
-  - `hardware_bridge_esp32.rs`: ESP32-specific ADC implementation.
+- `src/bin/main.rs`: Entry point, initialization, and wiring.
+- `src/app.rs`: Main loop and HID report coordination.
+- `src/bluetooth.rs`: BLE stack and HID service.
+- `src/hardware/`: `mod.rs` (peripheral layer), `analog_stick.rs` (joystick-to-key state machine), `hardware_bridge_esp32.rs` (ESP32 ADC).
 - `src/types.rs`: Shared value types (AdcValue, HidCode).
-- `cad/body.scad`: Parametric 3D model of the case (all printable parts).
-- `cad/keyboard.3mf`: Slicer project.
+- `cad/`: `body.scad` (parametric case), `keyboard.3mf` (slicer project).
 - `docs/`: Pinout and reference pictures.
 
 ## Configuration
 
-The analog stick deadzone and key mappings can be adjusted in
-`src/hardware/analog_stick.rs`.
-
-> [!TIP] You can find a complete list of USB HID scan codes here:
-> [USB HID Keyboard Scan Codes](https://gist.github.com/MightyPork/6da26e382a7ad91b5496ee55fdc73db2).
+The analog stick deadzone and key mappings are set in `src/hardware/analog_stick.rs`.
+For USB HID scan codes, see [USB HID Keyboard Scan Codes](https://gist.github.com/MightyPork/6da26e382a7ad91b5496ee55fdc73db2).
 
 ```rust
 const DEADZONE: AdcValue = AdcValue(600);
@@ -117,4 +84,4 @@ const X_AXIS_NEGATVIE: HidCode = HidCode(0x07); // Key D
 - [ ] **Pictures**: Pictures of a finished keyboard.
 - [x] **Case**: 3D-printable case (`cad/`).
 - [ ] **Custom Key Mapping**: Implement a way to remap keys.
-- [ ] **Platform Portability**: Support for other microcontrollers,if requested, but I can't promise to implement them ;-)
+- [ ] **Platform Portability**: Support for other microcontrollers, if requested, but I can't promise to implement them ;-)
