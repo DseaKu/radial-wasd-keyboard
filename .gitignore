@@ -22,3 +22,6 @@ managed_components/
 
 # OS specific files
 **/.DS_Store
+
+# 3D print build output (rebuild with: make cad)
+cad/*.stl

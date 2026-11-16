@@ -55,6 +55,25 @@ Ensure your ESP32 is connected via USB.
 cargo espflash flash --release --monitor
 ```
 
+## Hardware / 3D Print
+
+The case is fully parametric in a single OpenSCAD file: `cad/body.scad`
+(Charybdis-style key well for Kailh Choc v1, Hall-effect thumbstick,
+ESP32-C3 Super Mini).
+
+Build all printable parts (needs [OpenSCAD](https://openscad.org/)):
+
+```bash
+make cad
+```
+
+This writes `case.stl`, `stick_plate.stl`, `stick_carrier.stl`, `knob.stl`
+and `bottom.stl` into `cad/`. The STLs are build output and not tracked in git.
+`cad/keyboard.3mf` is the slicer project with the print settings.
+
+Hardware: M2 screws, Kailh Choc v1 switches, Hall-effect thumbstick
+(PS4/PS5 size, ALPS RKJXV footprint).
+
 ## Project Structure
 
 - `src/bin/main.rs`: Entry point, system initialization, and wiring.
@@ -65,6 +84,9 @@ cargo espflash flash --release --monitor
   - `analog_stick.rs`: State machine for joystick-to-key mapping.
   - `hardware_bridge_esp32.rs`: ESP32-specific ADC implementation.
 - `src/types.rs`: Shared value types (AdcValue, HidCode).
+- `cad/body.scad`: Parametric 3D model of the case (all printable parts).
+- `cad/keyboard.3mf`: Slicer project.
+- `docs/`: Pinout and reference pictures.
 
 ## Configuration
 
@@ -89,5 +111,6 @@ const X_AXIS_NEGATVIE: HidCode = HidCode(0x07); // Key D
 
 - [ ] **Standard Key Support**: Add support for buttons.
 - [ ] **Pictures**: Pictures of a finished keyboard.
+- [x] **Case**: 3D-printable case (`cad/`).
 - [ ] **Custom Key Mapping**: Implement a way to remap keys.
 - [ ] **Platform Portability**: Support for other microcontrollers,if requested, but I can't promise to implement them ;-)
