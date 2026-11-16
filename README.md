@@ -21,7 +21,7 @@ This keyboard is inspired by the [Charybdis](https://github.com/Bastardkb/Charyb
 
 ![Turntable view of the 3D-printable case](docs/keyboard_demo.gif)
 
-*Demo: the case rendered in OpenSCAD (`cad/body.scad`, run `make demo` in `cad/`).*
+*Demo: the case rendered in OpenSCAD (`cad/body.scad`, rebuild with `make -C cad demo`).*
 
 The ESP32 acts as a Bluetooth Low Energy (BLE) Human Interface Device (HID),
 mapping analog stick input to keyboard signals.
@@ -33,13 +33,19 @@ mapping analog stick input to keyboard signals.
 
 ## Setup and Flashing
 
-Prerequisites: [Rust toolchain](https://rustup.rs/), the
-[esp-idf-template](https://github.com/esp-rs/esp-idf-template) setup (LLVM, etc.),
-and `cargo install cargo-espflash`.
+Prerequisites:
+
+1. **ESP Rust toolchain**: `cargo install espup`, then `espup install`. The project uses the `esp` channel from `rust-toolchain.toml`.
+2. **ESP-IDF**: Follow the [esp-idf-template](https://github.com/esp-rs/esp-idf-template) guide for LLVM and the rest of the setup.
+3. **espflash**: `cargo install cargo-espflash`.
+
+Connect the ESP32-C3 by USB, then run:
 
 ```bash
-cargo build
-cargo espflash flash --release --monitor   # ESP32 connected via USB
+make firmware                # build
+make flash                   # flash the board
+make monitor                 # open the serial monitor
+make firmware flash monitor  # all three steps
 ```
 
 ## Hardware / 3D Print
@@ -48,11 +54,14 @@ The case is parametric in `cad/body.scad` (Charybdis-style key well for Kailh Ch
 Hall-effect thumbstick, ESP32-C3 Super Mini). Needs [OpenSCAD](https://openscad.org/).
 
 ```bash
-make cad
+make cad                        # macOS app at /Applications/OpenSCAD.app
+make cad OPENSCAD=openscad      # Homebrew or any other OpenSCAD on your PATH
 ```
 
 This writes `case.stl`, `stick_plate.stl`, `stick_carrier.stl`, `knob.stl` and
 `bottom.stl` into `cad/`. STLs are not tracked in git. `cad/keyboard.3mf` holds the print settings.
+
+To rebuild the turntable GIF in the Overview, run `make -C cad demo OPENSCAD=openscad` (needs ImageMagick).
 
 Parts: M2 screws, Kailh Choc v1 switches, Hall-effect thumbstick (PS4/PS5 size, ALPS RKJXV footprint).
 
@@ -61,10 +70,11 @@ Parts: M2 screws, Kailh Choc v1 switches, Hall-effect thumbstick (PS4/PS5 size, 
 - `src/bin/main.rs`: Entry point, initialization, and wiring.
 - `src/app.rs`: Main loop and HID report coordination.
 - `src/bluetooth.rs`: BLE stack and HID service.
-- `src/hardware/`: `mod.rs` (peripheral layer), `analog_stick.rs` (joystick-to-key state machine), `hardware_bridge_esp32.rs` (ESP32 ADC).
+- `src/hardware/`: `mod.rs` (peripheral layer), `analog_stick.rs` (joystick-to-key state machine), `keys.rs` (key input, placeholder), `hardware_bridge_esp32.rs` (ESP32 ADC).
 - `src/types.rs`: Shared value types (AdcValue, HidCode).
-- `cad/`: `body.scad` (parametric case), `keyboard.3mf` (slicer project).
-- `docs/`: Pinout and reference pictures.
+- `cad/`: `body.scad` (parametric case), `demo.scad` (turntable render), `Makefile` (builds the STLs and the GIF), `keyboard.3mf` (slicer project).
+- `docs/`: Pinout, and the turntable demo GIF.
+- `Makefile`: Firmware and CAD build targets.
 
 ## Configuration
 
