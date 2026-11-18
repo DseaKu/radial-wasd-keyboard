@@ -30,6 +30,8 @@
 /* [Part] */
 part = "assembly"; // [assembly, case, stick_plate, stick_carrier, knob, bottom, bat_lid, top_view]
 show_dummies = true;
+// look inside: cut the assembly horizontally, everything above this height is removed (60 = no cut)
+cut_z = 60; // [0:0.5:60]
 spin_z = is_undef($demo_spin) ? 0 : $demo_spin; // turn angle, set by cad/demo.scad only
 spin_c = is_undef($demo_center) ? [0, 0, 0] : $demo_center; // turn center, set by cad/demo.scad only
 
@@ -612,18 +614,25 @@ module dummies() {
 }
 
 // ============================================================ output
-translate(spin_c) rotate([0, 0, spin_z]) translate(-spin_c) if (part == "assembly") {
+// horizontal section for the assembly view (cut_z)
+module cut() {
+  if (cut_z >= 60) children();
+  else for (i = [0:$children - 1]) intersection() { // one by one, so the colours stay
+      children(i);
+      translate([-L, -L, -L]) cube([2 * L, 2 * L, L + cut_z]);
+    }
+}
+
+translate(spin_c) rotate([0, 0, spin_z]) translate(-spin_c) if (part == "assembly") cut() {
   color("#7f8fa6") case_body();
   color("#e1b12c") stick_plate();
   color("#2d6a4f") stick_carrier();
   color("#636e72") bottom_plate();
   if (battery) color("#e1b12c") bat_lid();
-  if (show_dummies) {
-    dummies();
-    color("seagreen") translate([mcu_x - mcu_w / 2, mcu_y0, mcu_standoff]) cube([mcu_w, mcu_l, mcu_board_t]);
-    color("silver") translate([mcu_x - 4.5, mcu_back - 7, mcu_standoff + mcu_board_t]) cube([9, 7.5, 3.2]);
-    if (battery) color("royalblue") translate([bat_x, bat_in0 + bat_plate, bat_z]) rotate([-90, 0, 0]) cylinder(d=bat_d, h=bat_space - 4);
-  }
+  if (show_dummies) dummies();
+  if (show_dummies) color("seagreen") translate([mcu_x - mcu_w / 2, mcu_y0, mcu_standoff]) cube([mcu_w, mcu_l, mcu_board_t]);
+  if (show_dummies) color("silver") translate([mcu_x - 4.5, mcu_back - 7, mcu_standoff + mcu_board_t]) cube([9, 7.5, 3.2]);
+  if (show_dummies && battery) color("royalblue") translate([bat_x, bat_in0 + bat_plate, bat_z]) rotate([-90, 0, 0]) cylinder(d=bat_d, h=bat_space - 4);
 }
 else if (part == "case") case_body();
 else if (part == "stick_plate") rotate([180, 0, 0]) multmatrix(PADinv) stick_plate();
