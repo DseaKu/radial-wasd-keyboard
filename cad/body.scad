@@ -1,6 +1,6 @@
 // =====================================================================
 //  Ferris LEFT half, Charybdis-style
-//  3x5 Kailh Choc v1 in a curved key well (column + row curvature,
+//  4x6 Kailh Choc v1 in a curved key well (column + row curvature,
 //  column stagger, tenting), full-size Hall effect thumbstick (PS4/PS5/Xbox
 //  replacement module, ALPS RKJXV footprint) in the thumb position.
 //  The stick sits on a printed carrier board (instead of a PCB); wires are
@@ -40,9 +40,11 @@ alpha = 15; // column curvature: tilt between rows (deg)
 beta = 5; // row curvature: tilt between columns (deg)
 tent = 15; // index side higher than the pinky side (deg)
 centerrow = 1; // flattest row (0 = front, 2 = back)
-centercol = 2; // flattest column (0 = pinky .. 4 = inner index)
+ncols = 6; // 0 = outer pinky .. 5 = inner index
+nrows = 4; // 0 = front (bottom row) .. 3 = number row
+centercol = 3; // flattest column (middle finger)
 // column stagger [x, y, z] per column, pinky .. inner index (dactyl/Charybdis defaults)
-col_offset = [[0, -12, 5.64], [0, 0, 0], [0, 2.82, -4.5], [0, 0, 0], [0, 0, 0]];
+col_offset = [[0, -12, 5.64], [0, -12, 5.64], [0, 0, 0], [0, 2.82, -4.5], [0, 0, 0], [0, 0, 0]];
 key_clear = 2; // free space under the switch pins + wiring, above the floor
 
 /* [Keys — Kailh Choc v1] */
@@ -57,10 +59,10 @@ cap_h = 6.5; // keycap top above the plate top
 
 /* [Stick (thumb)] */
 // stick centre relative to the front-right corner of the inner index key
-thumb_off = [4, -19.5, -8];
+thumb_off = [6, -25, -8];
 // stick plate rotation [x, y, z] (deg): z turns the plate toward the
 // front-right, x tilts it toward you, y tents it like the key well
-thumb_rot = [30, -10, 25];
+thumb_rot = [40, -10, 25];
 pad_margin = 3.5; // pad border around the stick unit
 pad_t = 2; // stick plate thickness
 pad_frame_t = 5; // case around the stick plate: pocket (pad_t) + ledge below
@@ -85,8 +87,7 @@ boss_hole = 1.8; // 1.8 = M2 self-tapping, 3.2 = M2 heat-set insert
 screw_d = 2.3;
 head_d = 4.0; // M2 countersunk
 // screw posts at these boundary entries (index into `boundary`)
-boss_at = [1, 9, 20, 25]; // (indices with the battery bay)
-boss_at_nobay = [1, 9, 16, 23, 28];
+boss_at = [1, 6, 11, 14, 28, 30, 35]; // boundary indices (none on the inner side: the battery runs along it)
 
 /* [Controller — ESP32-C3 Super Mini] */
 mcu_w = 18;
@@ -94,30 +95,28 @@ mcu_l = 22.52;
 mcu_board_t = 1.2;
 mcu_standoff = 2;
 mcu_clear = 0.3;
-mcu_col = 3; // sits behind this column, USB-C out the back wall
-mcu_dx = 10; // shift to the right (mm)
+mcu_col = 4; // sits behind this column, USB-C out the back wall
+mcu_dx = -0.8; // shift to the right (mm); leaves room for the battery to its right
 usb_w = 12.5;
 usb_h = 7.5;
 usb_dx = 2; // USB-C opening shifted to the right (stick side) relative to the controller
 
-/* [Battery bay — 18650, hot-swap through the back wall] */
-// The case is extended on the stick side: the back wall runs on straight,
-// a new side wall runs forward beside the stick, then angles in to the stick
-// plate's front corner. The cell lies in a tube in that bay, beside (not
-// behind) the stick unit, and slides out through a flush twist lid in the
-// back wall, next to the USB-C port.
+/* [Battery — 18650, hot-swap through the back wall] */
+// The cell lies in a tube inside the case, under the index columns, and
+// slides out through a flush twist lid in the back wall next to the USB-C port.
 // Contacts: + at the front (flat plate), - on the lid (spring).
 battery = true;
 bat_d = 18.6; // cell diameter (max incl. wrap)
 bat_space = 70; // cell + compressed spring (18650: 65-67 + ~4)
 bat_fit = 0.6; // diametral play in the tube
-bat_x = 76; // tube axis x (world): beside the stick unit
-bat_tube_wall = 1.6;
+bat_x = 36.8; // cell axis x (world): under the inner index column, right of the controller
+bat_rail = [1.2, 8]; // side rails on the bottom plate that guide the cell (thickness, height)
+bat_block = 2.6; // wall around the lid opening (bayonet slots)
+bat_block_top = 21.5; // the block around the lid stays below the switches
+corner_top = 30; // height of the squared-off inner back corner
 bat_plate = 1; // + contact plate at the front
 bat_end_t = 2; // closed front end
-bay_wall_t = 2.5; // new side wall
-bay_top = 24.5; // height of the new walls (roof slopes up to the keys / stick plate)
-lid_plug = 7; // lid plug length inside the tube
+lid_plug = 5; // lid plug length inside the tube
 lid_fit = 0.4; // diametral play lid <-> tube
 lid_pin_d = 2.5; // bayonet pins on the lid
 lid_pin_h = 1.2;
@@ -128,7 +127,7 @@ lid_ramp = 1.0; // the slot pulls the lid in this much over the twist ...
 lid_detent = 0.5; // ... then it drops back this much into a notch
 lid_grip = [13, 3, 2.5]; // grip bar on the lid face (l, w, h)
 spring_pocket = [12, 3]; // spring seat in the lid (d, depth)
-strip_w = 5.5; // groove for the - strip along the tube floor
+strip_w = 5.5; // groove for the - strip in the bottom plate, under the cell
 strip_t = 0.6;
 
 /* [Stick module — Hall effect, ALPS RKJXV / PS4-PS5 size] */
@@ -205,6 +204,8 @@ function ap(M, p) = let (q = M * [p[0], p[1], len(p) > 2 ? p[2] : 0, 1]) [q[0], 
 // ============================================================ key placement
 R_row = (key_pitch[1] / 2) / sin(alpha / 2) + cap_h;
 R_col = (key_pitch[0] / 2) / sin(beta / 2) + cap_h;
+LC = ncols - 1; // inner index column
+LR = nrows - 1; // back row
 // key frame: origin = keyhole centre, plate top at z = 0
 function key_M0(c, r) =
   Ry(-tent) * T(col_offset[c])
@@ -212,7 +213,7 @@ function key_M0(c, r) =
   * T([0, 0, R_row]) * Rx(alpha * (r - centerrow)) * T([0, 0, -R_row]);
 
 // stick pad frame: origin = stick axis, pad top at z = 0
-pad_anchor0 = ap(key_M0(4, 0), [mount_w / 2, -mount_h / 2, 0]) + thumb_off;
+pad_anchor0 = ap(key_M0(LC, 0), [mount_w / 2, -mount_h / 2, 0]) + thumb_off;
 PAD_M0 = T(pad_anchor0) * Rz(thumb_rot[2]) * Ry(thumb_rot[1]) * Rx(thumb_rot[0]);
 // stick module turned in the pad (deg); 0 = push-switch side toward the pad's +y
 stick_rot = 0;
@@ -230,7 +231,7 @@ carrier_y = [min(mod_y[0], min([for (p = carrier_posts) p.y]) - carrier_post_d /
   max(mod_y[1], max([for (p = carrier_posts) p.y]) + carrier_post_d / 2) + carrier_border];
 unit_low = [for (x = carrier_x) for (y = carrier_y) [x, y, z_low]];
 z_min0 = min(concat(
-    [for (c = [0:4]) for (r = [0:2]) for (p = key_low) ap(key_M0(c, r), p).z],
+    [for (c = [0:LC]) for (r = [0:LR]) for (p = key_low) ap(key_M0(c, r), p).z],
     [for (p = unit_low) ap(PAD_M0 * SLP, p).z]
   ));
 z_lift = key_clear - z_min0;
@@ -271,11 +272,11 @@ function pc(corner) =
 module ppost(corner) { multmatrix(PAD_M) translate(pc(corner)) post(); }
 
 module key_well() {
-  for (c = [0:4]) for (r = [0:2]) multmatrix(key_M(c, r)) keyhole();
+  for (c = [0:LC]) for (r = [0:LR]) multmatrix(key_M(c, r)) keyhole();
   // webs between neighbouring keys
-  for (c = [0:4]) for (r = [0:1]) hull() { kpost(c, r, "tl"); kpost(c, r, "tr"); kpost(c, r + 1, "bl"); kpost(c, r + 1, "br"); }
-  for (c = [0:3]) for (r = [0:2]) hull() { kpost(c, r, "tr"); kpost(c, r, "br"); kpost(c + 1, r, "tl"); kpost(c + 1, r, "bl"); }
-  for (c = [0:3]) for (r = [0:1]) hull() { kpost(c, r, "tr"); kpost(c + 1, r, "tl"); kpost(c, r + 1, "br"); kpost(c + 1, r + 1, "bl"); }
+  for (c = [0:LC]) for (r = [0:LR - 1]) hull() { kpost(c, r, "tl"); kpost(c, r, "tr"); kpost(c, r + 1, "bl"); kpost(c, r + 1, "br"); }
+  for (c = [0:LC - 1]) for (r = [0:LR]) hull() { kpost(c, r, "tr"); kpost(c, r, "br"); kpost(c + 1, r, "tl"); kpost(c + 1, r, "bl"); }
+  for (c = [0:LC - 1]) for (r = [0:LR - 1]) hull() { kpost(c, r, "tr"); kpost(c + 1, r, "tl"); kpost(c, r + 1, "br"); kpost(c + 1, r + 1, "bl"); }
 }
 
 // ============================================================ stick pad (in the case)
@@ -300,21 +301,17 @@ module pad_cuts() {
 }
 
 // ============================================================ walls (dactyl style)
-// ---- battery bay geometry (world)
-back_out = ap(key_M(4, 2), [kc("tr").x, kc("tr").y + wall_xy + wall_t, wall_z]).y; // outer face of the back wall
+// ---- battery tube geometry (world)
+back_out = ap(key_M(LC, LR), [kc("tr").x, kc("tr").y + wall_xy + wall_t, wall_z]).y; // outer face of the back wall
 bore_d = bat_d + bat_fit;
-bat_R = bore_d / 2 + bat_tube_wall;
-bat_z = bat_R; // tube sits on the floor
-bay_x = bat_x + bat_R; // outer face of the new side wall
+bat_z = bore_d / 2 + 0.3; // the cell lies on the bottom plate
 lid_face = back_out; // lid flush with the back wall
 bat_in1 = lid_face - lid_plug; // lid plug end (spring seat)
 bat_in0 = bat_in1 - bat_space - bat_plate; // inner front end
 bat_front = bat_in0 - bat_end_t;
-pbr_out = ap(PAD_M, concat(pc("br"), [0]) + [0, -(wall_xy + wall_t), wall_z]); // stick plate front corner, outside
-bay_A = [bay_x - bay_wall_t, back_out - bay_wall_t, bay_top]; // back corner (inner top edge)
-bay_B = [bay_x - bay_wall_t, bat_front - 2, bay_top]; // front end of the side wall
-bay_n = let (d = [pbr_out.x - bay_x, pbr_out.y - bay_B.y], l = norm(d)) [-d.y / l, d.x / l]; // outward normal of the angled wall
-echo(str("battery bay: case ", bay_x - 52, " mm wider on the stick side, cell space ", bat_space, " mm"));
+echo(str("battery tube: y ", bat_front, " .. ", lid_face, ", cell space ", bat_space, " mm"));
+
+corner_pt = [ap(key_M(LC, LR - 1), [kc("tr").x + wall_xy, kc("tr").y, wall_z]).x, back_out - wall_t, corner_top];
 
 // boundary entries: ["K", col, row, corner, dx, dy] or ["P", corner, dx, dy] (directions in the key/pad frame)
 // ["W", [x, y, z], [dx, dy]]: a straight vertical wall at a world point (inner top edge)
@@ -322,7 +319,7 @@ function eM(e) = e[0] == "K" ? key_M(e[1], e[2]) : e[0] == "W" ? T([0, 0, 0]) : 
 function eP(e) = e[0] == "K" ? kc(e[3]) : e[0] == "W" ? e[1] : pc(e[1]);
 function eP3(e) = e[0] == "W" ? e[1] : concat(eP(e), [0]);
 function eD(e) = e[0] == "K" ? [e[4], e[5]] : e[0] == "W" ? e[2] : [e[2], e[3]];
-function wl(e, i) = let (d = eD(e), wt = e[0] == "W" ? bay_wall_t : wall_t)
+function wl(e, i) = let (d = eD(e), wt = wall_t)
   e[0] == "W" ? (i == 1 ? [d.x * wt, d.y * wt, 0] : i == 2 ? [0, 0, -0.02] : [d.x * wt, d.y * wt, -0.02])
   : i == 1 ? [d.x * wall_t, d.y * wall_t, -1]
   : i == 2 ? [d.x * wall_xy, d.y * wall_xy, wall_z]
@@ -339,25 +336,18 @@ module wall_seg(a, b) {
 }
 boundary = [
   // pinky side
-  ["K", 0, 0, "bl", -1, 0], ["K", 0, 0, "tl", -1, 0], ["K", 0, 1, "bl", -1, 0], ["K", 0, 1, "tl", -1, 0],
-  ["K", 0, 2, "bl", -1, 0], ["K", 0, 2, "tl", -1, 0],
+  for (r = [0:LR]) each [["K", 0, r, "bl", -1, 0], ["K", 0, r, "tl", -1, 0]],
   // back
-  ["K", 0, 2, "tl", 0, 1], ["K", 0, 2, "tr", 0, 1], ["K", 1, 2, "tl", 0, 1], ["K", 1, 2, "tr", 0, 1],
-  ["K", 2, 2, "tl", 0, 1], ["K", 2, 2, "tr", 0, 1], ["K", 3, 2, "tl", 0, 1], ["K", 3, 2, "tr", 0, 1],
-  ["K", 4, 2, "tl", 0, 1], ["K", 4, 2, "tr", 0, 1],
-  // battery bay: back wall straight on, side wall beside the stick, angled to the stick plate corner
-  each (battery ? [
-    ["W", bay_A, [0, 1]], ["W", bay_A, [1, 0]],
-    ["W", bay_B, [1, 0]], ["W", bay_B, bay_n],
-  ] : [
-    ["K", 4, 2, "tr", 1, 0], ["K", 4, 2, "br", 1, 0], ["K", 4, 1, "tr", 1, 0], ["K", 4, 1, "br", 1, 0],
-    ["K", 4, 0, "tr", 1, 0], ["P", "tr", 1, 0], ["P", "br", 1, 0],
-  ]),
+  for (c = [0:LC]) each [["K", c, LR, "tl", 0, 1], ["K", c, LR, "tr", 0, 1]],
+  // inner back corner, squared off so the cell + lid fit (straight back wall, straight side wall)
+  ["W", corner_pt, [0, 1]], ["W", corner_pt, [1, 0]],
+  // inner index side
+  for (r = [LR:-1:1]) each [["K", LC, r, "br", 1, 0], ["K", LC, r - 1, "tr", 1, 0]],
   // stick plate
-  ["P", "br", 0, -1], ["P", "bl", 0, -1], ["P", "bl", -1, 0],
+  ["P", "tr", 1, 0], ["P", "br", 1, 0], ["P", "br", 0, -1], ["P", "bl", 0, -1], ["P", "bl", -1, 0],
   // front (straight from the stick plate to the middle finger: no notch beside the stick)
-  ["K", 3, 0, "bl", 0, -1], ["K", 2, 0, "br", 0, -1], ["K", 2, 0, "bl", 0, -1],
-  ["K", 1, 0, "br", 0, -1], ["K", 1, 0, "bl", 0, -1], ["K", 0, 0, "br", 0, -1], ["K", 0, 0, "bl", 0, -1],
+  ["K", LC - 1, 0, "bl", 0, -1],
+  for (c = [LC - 2:-1:0]) each [["K", c, 0, "br", 0, -1], ["K", c, 0, "bl", 0, -1]],
   ["K", 0, 0, "bl", -1, 0],
 ];
 module walls() { for (i = [0:len(boundary) - 1]) wall_seg(boundary[i], boundary[(i + 1) % len(boundary)]); }
@@ -365,16 +355,16 @@ module walls() { for (i = [0:len(boundary) - 1]) wall_seg(boundary[i], boundary[
 // top surface between the key well and the stick plate
 module thumb_connectors() {
   // thin triangles, so nothing reaches under the keys
-  hull() { kpost(4, 0, "bl"); kpost(4, 0, "br"); ppost("tl"); }
-  hull() { kpost(4, 0, "br"); ppost("tl"); ppost("tr"); }
-  hull() { kpost(4, 0, "br"); kpost(4, 0, "tr"); ppost("tr"); }
-  hull() { kpost(3, 0, "br"); kpost(4, 0, "bl"); ppost("tl"); }
-  hull() { kpost(3, 0, "bl"); kpost(3, 0, "br"); ppost("tl"); }
-  hull() { kpost(3, 0, "bl"); ppost("tl"); ppost("bl"); } // closes the corner in front of the middle finger
+  hull() { kpost(LC, 0, "bl"); kpost(LC, 0, "br"); ppost("tl"); }
+  hull() { kpost(LC, 0, "br"); ppost("tl"); ppost("tr"); }
+  hull() { kpost(LC, 0, "br"); kpost(LC, 0, "tr"); ppost("tr"); }
+  hull() { kpost(LC - 1, 0, "br"); kpost(LC, 0, "bl"); ppost("tl"); }
+  hull() { kpost(LC - 1, 0, "bl"); kpost(LC - 1, 0, "br"); ppost("tl"); }
+  hull() { kpost(LC - 1, 0, "bl"); ppost("tl"); ppost("bl"); } // closes the corner in front of the middle finger
 }
 
 module key_cuts() {
-  for (c = [0:4]) for (r = [0:2]) multmatrix(key_M(c, r)) {
+  for (c = [0:LC]) for (r = [0:LR]) multmatrix(key_M(c, r)) {
         translate([0, 0, -plate_t / 2]) cube([switch_hole, switch_hole, plate_t + 2], center=true);
         translate([-relief / 2, -relief / 2, -plate_t - 1]) cube([relief, relief, plate_t - clip_t + 1]);
       }
@@ -390,9 +380,7 @@ function boss_pos(i) =
   let (e = boundary[i], d = eD(e), q = ap(eM(e), concat(eP(e), [0]) + [d.x * (wall_xy - boss_d / 2 + 1), d.y * (wall_xy - boss_d / 2 + 1), wall_z]))
   [q.x, q.y];
 // extra posts in the battery bay: behind the tube end block, and in the front corner
-bay_bosses = [[bat_x - bat_R - 4.5, back_out - wall_t - 3],
-  ([bay_x, bay_B.y] + [pbr_out.x, pbr_out.y]) / 2 - bay_n * (bay_wall_t + boss_d / 2 - 0.5)]; // middle of the angled wall, inside
-all_boss = concat([for (i = battery ? boss_at : boss_at_nobay) boss_pos(i)], battery ? bay_bosses : []);
+all_boss = [for (i = boss_at) boss_pos(i)];
 module bosses() {
   for (p = all_boss) translate(p) cylinder(d=boss_d, h=boss_h);
 }
@@ -401,8 +389,8 @@ module boss_holes() {
 }
 
 // ---- controller: on the bottom plate against the back wall, USB-C out the back
-mcu_back = min(ap(key_M(mcu_col, 2), [0, mount_h / 2 + wall_xy, wall_z]).y, ap(key_M(mcu_col + 1, 2), [0, mount_h / 2 + wall_xy, wall_z]).y) - 0.4; // inner wall face
-mcu_x = ap(key_M(mcu_col, 2), [0, 0, 0]).x + mcu_dx;
+mcu_back = min(ap(key_M(mcu_col, LR), [0, mount_h / 2 + wall_xy, wall_z]).y, ap(key_M(min(mcu_col + 1, LC), LR), [0, mount_h / 2 + wall_xy, wall_z]).y) - 0.4; // inner wall face
+mcu_x = ap(key_M(mcu_col, LR), [0, 0, 0]).x + mcu_dx;
 mcu_y0 = mcu_back - mcu_l;
 usb_z = mcu_standoff + mcu_board_t + 1.6;
 module mcu_cradle() {
@@ -423,50 +411,53 @@ module usb_cut() {
 }
 
 // ---- battery bay: roof, tube, lid
-// roof from the key well / stick plate edge out to the top of the new walls
-module bay_roof() {
-  module wp(p) translate(p) post();
-  hull() { kpost(4, 2, "tr"); kpost(4, 2, "br"); wp(bay_A); }
-  hull() { kpost(4, 2, "br"); kpost(4, 1, "tr"); wp(bay_A); }
-  hull() { kpost(4, 1, "tr"); kpost(4, 1, "br"); wp(bay_A); }
-  hull() { kpost(4, 1, "br"); wp(bay_A); wp(bay_B); }
-  hull() { kpost(4, 1, "br"); kpost(4, 0, "tr"); wp(bay_B); }
-  hull() { kpost(4, 0, "tr"); ppost("tr"); wp(bay_B); }
-  hull() { ppost("tr"); ppost("br"); wp(bay_B); }
-}
 // 2D sections in (x, up), extruded along +y at the tube axis
 module along_y(y0, y1) translate([bat_x, y1, bat_z]) rotate([90, 0, 0]) linear_extrude(y1 - y0) children();
 // radial cutter / pin at angle a (0 = +x, 90 = up), zz along the axis from the lid face (+ = out)
 module radial(a, zz, d, r0, len) translate([bat_x, lid_face + zz, bat_z]) rotate([0, -a, 0]) translate([r0, 0, 0]) rotate([0, 90, 0]) cylinder(d=d, h=len, $fn=20);
-module bat_tube() {
-  along_y(bat_front, lid_face) hull() { // flat sides down to the floor
-      circle(r=bat_R);
-      translate([-bat_R, -bat_z]) square([2 * bat_R, 0.01]);
-    }
-  // solid block around the lid end for the bayonet slots
+// top surface over the squared-off corner
+module corner_roof() {
+  hull() { kpost(LC, LR, "tr"); kpost(LC, LR, "br"); translate(corner_pt) post(); }
+}
+// block around the lid opening, inside the back wall (carries the bayonet slots)
+module bat_block() {
+  R = bore_d / 2 + bat_block;
   intersection() {
-    translate([bat_x - bat_R - 6, bat_in1 - 3, 0]) cube([bay_x - (bat_x - bat_R - 6), lid_face - bat_in1 + 3, bay_top]);
+    along_y(bat_in1 - 3, lid_face) hull() {
+        circle(r=R);
+        translate([-R, -bat_z]) square([2 * R, 0.01]);
+      }
+    translate([-L, -L, 0]) cube([2 * L, 2 * L, bat_block_top]);
     linear_extrude(L) offset(delta=-0.2) floor_outer2d();
+  }
+}
+// rails + front stop on the bottom plate
+module bat_cradle() {
+  r = bore_d / 2;
+  difference() {
+    union() {
+      for (s = [-1, 1]) translate([bat_x + s * (r + bat_rail[0] / 2) - bat_rail[0] / 2, bat_front, 0]) cube([bat_rail[0], bat_in1 - 3.3 - bat_front, bat_rail[1]]);
+      translate([bat_x - r - bat_rail[0], bat_front, 0]) cube([bore_d + 2 * bat_rail[0], bat_end_t + 0.8, bat_z + 6]); // front stop
+    }
+    // + contact plate pocket + slot for its solder tab
+    translate([bat_x - 6.25, bat_in0 - 0.8, bat_z - 6.25]) cube([12.5, 0.8 + eps, 12.5]);
+    translate([bat_x - 3, bat_front - 1, bat_z - 5]) cube([6, bat_end_t + 2, 1.2]);
   }
 }
 lid_w = lid_pin_d + 0.4; // slot width
 lid_z_lock = -lid_pin_at - (lid_w - lid_pin_d) / 2; // slot centre when locked (pin on the outer edge)
 module bat_cuts() {
   r = bore_d / 2;
-  along_y(bat_in0, lid_face + 1) {
-    intersection() { // teardrop roof, cut flat 0.5 mm above the circle (short bridge)
-      hull() {
-        circle(d=bore_d);
-        polygon([[-r * sin(45), r * cos(45)], [r * sin(45), r * cos(45)], [0, r * sqrt(2)]]);
+  along_y(bat_in1 - 4, lid_face + 1) { // opening through the block + back wall
+      intersection() { // teardrop roof, cut flat 0.5 mm above the circle (short bridge)
+        hull() {
+          circle(d=bore_d);
+          polygon([[-r * sin(45), r * cos(45)], [r * sin(45), r * cos(45)], [0, r * sqrt(2)]]);
+        }
+        translate([-r - 1, -r - 1]) square([2 * r + 2, 2 * r + 1.5]);
       }
-      translate([-r - 1, -r - 1]) square([2 * r + 2, 2 * r + 1.5]);
+      translate([-strip_w / 2 - 0.5, -bat_z - 1]) square([strip_w + 1, 2]); // notch for the - strip under the lid
     }
-    translate([-strip_w / 2, -r - strip_t]) square([strip_w, strip_t + 1]); // - strip groove
-  }
-  // + contact plate pocket in the front end, slot for its solder tab, hole for the - strip wire
-  translate([bat_x - 6.25, bat_in0 - 0.8, bat_z - 6.25]) cube([12.5, 0.8 + eps, 12.5]);
-  translate([bat_x - 3, bat_front - 1, bat_z - 5]) cube([6, bat_end_t + 2, 1.2]);
-  translate([bat_x, bat_front - 1, bat_z - r - strip_t + 1.1]) rotate([-90, 0, 0]) cylinder(d=2.2, h=bat_end_t + 2);
   // bayonet slots: in axially, twist (ramp pulls the lid in), drop into the notch
   for (al = lid_pins) let (ae = al + lid_turn, z0 = lid_z_lock - lid_detent + lid_ramp,
       path = concat([[ae, 2]], [for (i = [0:6]) [ae - (lid_turn - 5) * i / 6, z0 - lid_ramp * i / 6]], [[al, lid_z_lock - lid_detent], [al, lid_z_lock]]))
@@ -499,7 +490,9 @@ module bottom_plate() {
         linear_extrude(L) offset(delta=-0.3) floor_inner2d();
         mcu_cradle();
       }
+      if (battery) intersection() { linear_extrude(L) offset(delta=-0.3) floor_inner2d(); bat_cradle(); }
     }
+    if (battery) translate([bat_x - strip_w / 2, bat_in0 - 1, -strip_t]) cube([strip_w, lid_face - 1 - bat_in0, strip_t + eps]); // - strip groove under the cell
     for (p = all_boss) translate(concat(p, [-bottom_t - 1])) {
         cylinder(d=screw_d, h=bottom_t + 2);
         cylinder(d1=head_d + 2, d2=screw_d - 0.2, h=(head_d + 2 - screw_d) / 2 + 0.1); // countersink from below
@@ -585,7 +578,8 @@ module case_body() {
       thumb_connectors();
       walls();
       intersection() { linear_extrude(L) offset(delta=-0.5) floor_outer2d(); bosses(); } // grow into the wall, never through it
-      if (battery) { bay_roof(); bat_tube(); }
+      corner_roof();
+      if (battery) bat_block();
     }
     boss_holes();
     usb_cut();
@@ -598,7 +592,7 @@ module case_body() {
 
 // ============================================================ dummies
 module dummies() {
-  for (c = [0:4]) for (r = [0:2]) multmatrix(key_M(c, r)) {
+  for (c = [0:LC]) for (r = [0:LR]) multmatrix(key_M(c, r)) {
     color("#555") translate([0, 0, -2.2 - clip_t]) linear_extrude(2.2 + clip_t + 3) square(15, center=true);
     color("#444") translate([0, 0, -2.2 - clip_t - 2.65]) cylinder(d=1, h=2.65);
     color("#e8e6e1") translate([0, 0, 3.5]) linear_extrude(2.5) offset(r=1.5) offset(delta=-1.5) square([17.5, 16.5], center=true);
@@ -646,6 +640,6 @@ else if (part == "top_view") {
   color("#999") floor_inner2d();
   color("#0a0") for (p = all_boss) translate(p) circle(d=boss_d);
   color("#2a2") translate([mcu_x - mcu_w / 2, mcu_y0]) square([mcu_w, mcu_l]);
-  color("#f55") projection() for (c = [0:4]) for (r = [0:2]) multmatrix(key_M(c, r)) translate([0, 0, -1]) linear_extrude(1) square(15, center=true);
+  color("#f55") projection() for (c = [0:LC]) for (r = [0:LR]) multmatrix(key_M(c, r)) translate([0, 0, -1]) linear_extrude(1) square(15, center=true);
   color("#55f") projection() multmatrix(PAD_M) translate([0, 0, -1]) linear_extrude(1) pad_rect();
 }
