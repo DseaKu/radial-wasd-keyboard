@@ -58,8 +58,8 @@ make cad                        # macOS app at /Applications/OpenSCAD.app
 make cad OPENSCAD=openscad      # Homebrew or any other OpenSCAD on your PATH
 ```
 
-This writes `case.stl`, `stick_plate.stl`, `stick_carrier.stl`, `knob.stl` and
-`bottom.stl` into `cad/`. STLs are not tracked in git. `cad/keyboard.3mf` holds the print settings.
+This writes `case.stl`, `stick_plate.stl`, `stick_carrier.stl`, `knob.stl`,
+`bottom.stl` and `bat_lid.stl` (18650 battery lid) into `cad/`. STLs are not tracked in git. `cad/keyboard.3mf` holds the print settings.
 
 To rebuild the turntable GIF in the Overview, run `make -C cad demo OPENSCAD=openscad` (needs ImageMagick).
 
