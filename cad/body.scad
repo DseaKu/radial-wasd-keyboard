@@ -60,7 +60,7 @@ cap_h = 6.5; // keycap top above the plate top
 thumb_off = [4, -19.5, -8];
 // stick plate rotation [x, y, z] (deg): z turns the plate toward the
 // front-right, x tilts it toward you, y tents it like the key well
-thumb_rot = [15, -10, 25];
+thumb_rot = [30, -10, 25];
 pad_margin = 3.5; // pad border around the stick unit
 pad_t = 2; // stick plate thickness
 pad_frame_t = 5; // case around the stick plate: pocket (pad_t) + ledge below
@@ -390,7 +390,8 @@ function boss_pos(i) =
   let (e = boundary[i], d = eD(e), q = ap(eM(e), concat(eP(e), [0]) + [d.x * (wall_xy - boss_d / 2 + 1), d.y * (wall_xy - boss_d / 2 + 1), wall_z]))
   [q.x, q.y];
 // extra posts in the battery bay: behind the tube end block, and in the front corner
-bay_bosses = [[bat_x - bat_R - 4.5, back_out - wall_t - 3], [bay_x - bay_wall_t - 4.5, bat_front - 4]];
+bay_bosses = [[bat_x - bat_R - 4.5, back_out - wall_t - 3],
+  ([bay_x, bay_B.y] + [pbr_out.x, pbr_out.y]) / 2 - bay_n * (bay_wall_t + boss_d / 2 - 0.5)]; // middle of the angled wall, inside
 all_boss = concat([for (i = battery ? boss_at : boss_at_nobay) boss_pos(i)], battery ? bay_bosses : []);
 module bosses() {
   for (p = all_boss) translate(p) cylinder(d=boss_d, h=boss_h);
